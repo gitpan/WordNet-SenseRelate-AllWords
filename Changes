@@ -1,0 +1,49 @@
+Revision history for Perl extension WordNet::SenseRelate.
+
+0.04  Tue Apr 12 10:40:48 2005
+	- fixed serious bug that often prevented higher numbered senses
+	  of target words from being considered
+
+	- fixed errors in wsd.pl when --format is omitted
+
+	- added diagnostic messages when stoplist is malformed
+
+	- fixed bug in windowing that prevented window from expanding
+	  under certain circumstances
+
+	- added new traces levels for displaying semantic relatedness
+	  scores and making ouput of zero values optional
+	  
+	- fixed bug where sense1 and random schemes would fail when
+	  used with a stoplist or tagged text 
+
+	- clarified description of window in documentation
+
+	- added sample stoplist
+
+	- suppress irrelevant configuration information when wsd.pl is
+	  run under sense1 or random
+
+	- updated test scripts to reflect recent changes
+
+	- renamed as WordNet::SenseRelate::AllWords
+
+0.03  Fri Mar 11 15:25:18 2005
+	- added scripts for converting semcor files and
+	  formatting the output for Senseval
+
+	- added another test script
+
+	- changed the input format(s) to wsd.pl
+
+	- expanded documentation
+
+0.02  Mon Jan 17 10:01:00 2005
+        - added part of speech coercion option
+
+        - expanded discussions in README
+
+0.01  Wed Nov  3 12:52:33 2004
+	- original version; created by h2xs 1.23 with options
+		-n WordNet::SenseRelate -X -b 5.6.0
+

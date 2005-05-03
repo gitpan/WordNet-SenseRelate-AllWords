@@ -1,8 +1,8 @@
-# $Id: README.pod,v 1.2 2005/04/13 00:00:16 jmichelizzi Exp $
+# $Id: README.pod,v 1.7 2005/05/02 02:37:13 jmichelizzi Exp $
 
 =head1 NAME
 
-WordNet-SenseRelate-AllWords version 0.04
+WordNet-SenseRelate-AllWords version 0.05
 
 =head1 OVERVIEW
 
@@ -69,7 +69,7 @@ It is discussed in greater detail later in this document.
 This script will reformat a Semcor file so that it can be used as input
 to wsd.pl
 
-=item reformat-for-scorer2.pl
+=item scorer2-format.pl
 
 This script will reformat the output of wsd.pl so that it can be used as
 input to the Senseval scorer2 program.
@@ -142,33 +142,49 @@ does not cross sentence boundaries when carrying out disambiguation.
 =head2 The Context Window
 
 The size of the context window can be specified by the user.  A context
-window of size 3 means that the 3 words to the left and the 3 words to
-the right of the target word will be in the context window; however,
-the algorithm will expand the context window so that the 3 words on each
-side will be words known to WordNet.  For example, if the word 'the',
-occurs in the context window to the left of the target word, then the
-window will be expanded by one word to the left.
+window of size 3 means that the context window will consist of three
+words, including the target word.  Thus, the three words would be the
+word to the left of the target word, the target word itself, and the
+word to the right of the target word.  The algorithm will expand the context
+window so that the three words will be words known to WordNet (the algorithm
+is unable to disambiguate words unknown to WordNet).  For example, if the
+word 'the', occurs in the context window to the left of the target word,
+then the window will be expanded by one word to the left.
+
+If the window size is an even number, then there will be one more word
+to the left of the target word than to the right.  For example, if the
+window size is 4, there will be two words to the left of the target word
+and one word to the right.
 
 Note that the context window will only include words in the same sentence
 as the target word.  If, for example, the target word is the first word
 in the sentence, then there will be no words to left of the target word
-in the context window.
+in the context window regarless of the specified window size.
+
+The minimum window size is 2 because a smaller window mean that there
+are no context words in the window.  When the window size is 2, there
+is no context to use for disambiguating the first word in a sentence.
+To assign a sense number to that first word, the first sense of the
+word is chosen (i.e., sense number 1).  Sense number 1 is usually the
+most frequent sense of a word.
 
 =head2 Part of Speech Coercion
 
 Certain measures of semantic similarity only work on noun-noun or verb-verb
 pairs; therefore, the usefulness of these measures for WSD is somewhat
-limited.  As a way of coping with this problem, WordNet::SenseRelate provides
+limited.  As a way of coping with this problem, WordNet::SenseRelate::AllWords
+provides
 an option to "coerce" words in the context window to be of the same part
 of speech as the target word.
 
 When POS coercion is in effect, if the target word is a noun, then
-WordNet::SenseRelate will attempt to convert non-nouns in the context window
+WordNet::SenseRelate::AllWords will attempt to convert non-nouns in the
+context window
 to noun forms of the same word.  For example, if the target word is a noun
 and the verb I<love> occurs in the window, the module might convert that
 word to the noun I<love>.
 
-WordNet::SenseRelate first uses the validForms method from
+WordNet::SenseRelate::AllWords first uses the validForms method from
 WordNet::QueryData to find any valid forms of the word being coerced that
 are of the desired part of speech.  In the case of part of speech tagged
 text, the POS tags are discarded.  If validForms did not return any
@@ -181,29 +197,25 @@ the word to be the desired part of speech.
 
 Several different levels of trace output are available.  The trace level
 can be specified as a command-line option to wsd.pl or as a parameter
-to the WordNet::SenseRelate module.
+to the WordNet::SenseRelate::AllWords module.
 
 =head3 Trace Levels
 
-=over
+The trace levels are:
 
-=item 1
+  1 Show the context window for each pass through the algorithm.
 
-Show the context window for each pass through the algorithm.
+  2 Display winning score for each pass (i.e., for each target word).
 
-=item 2
+  4 Display the non-zero scores for each sense of each target
+    word (overrides 2).
 
-Display winning score for each pass.
+  8 Display the non-zero values from the semantic relatedness measures.
 
-=item 4
+ 16 Show the zero values as well when combined with either 4 or 8.
+    When not used with 4 or 8, this has no effect.
 
-Display the scores for all senses for each pass (overrides level 2).
-
-=item 8
-
-Display traces from the semantic relatedness module.
-
-=back
+ 32 Display traces from the semantic relatedness module.
 
 Different trace levels can be combined to achieve the desired behavior.
 For example, by specifying a trace level of 3, both level 1 and level 2
@@ -267,6 +279,20 @@ and has exactly one sentence per line.  Example:
  Red/JJ cars/NNS are/VBP faster/RBR than/IN white/JJ cars/NNS
  However/RB white/JJ cars/NNS are/VBP less/RBR expensive/JJ 
 
+=item wntagged
+
+Similar to tagged, except that the input should only contain words known to
+WordNet, and each word should have a letter indicating the part of speech
+('n', 'v', 'a', or 'r' for nouns, verbs, adjectives, and adverbs).  For
+example:
+
+ red#a car#n be#v faster#r white#a car#n
+ white#a car#n be#v less#r expensive#a
+
+Additionally, no attempt will be made to search for other valid forms of the
+words in the input.  For example, if 'dogs#n' is in the input, the program
+will not attempt to use other forms such as 'dog#n'.
+
 =back
 
 The different options and parameters for wsd.pl are discussed in detail
@@ -293,15 +319,15 @@ wsd.pl --trace 3 --context input.txt --window 4 --format raw
 
 =head2 Using the Disambiguation Module
 
-The WordNet::SenseRelate Perl module can be used in other Perl programs to
-perform word sense disambiguation.
+The WordNet::SenseRelate::AllWords Perl module can be used in other Perl
+programs to perform word sense disambiguation.
 
 =head3 Example
 
-  use WordNet::SenseRelate;
+  use WordNet::SenseRelate::AllWords;
   use WordNet::QueryData;
   my $qd = WordNet::QueryData->new;
-  my $wsd = WordNet::SenseRelate->new (wordnet => $qd,
+  my $wsd = WordNet::SenseRelate::AllWords->new (wordnet => $qd,
                                        measure => 'WordNet::Similarity::lesk');
   my @words = qw/this is a test/;
   my @results = $wsd->disambiguate (context => [@words]);
@@ -315,7 +341,7 @@ each sentence.
 
 The usage of the disambiguation module is discussed in detail in
 the documentation for the module.  Run 'perldoc WordNet::SenseRelate::AllWords'
-or 'man WordNet::SenseRelate'
+or 'man WordNet::SenseRelate::AllWords'
 (after installing the module) to view the documentation.  To view the
 documentation before installing the module, run
 'perldoc lib/WordNet/SenseRelate/AllWords.pm'.
@@ -324,6 +350,18 @@ documentation before installing the module, run
 =head1 SEE ALSO
 
 WordNet::SenseRelate::AllWords(3) wsd.pl(1)
+
+The main web page for SenseRelate is
+
+L<http://senserelate.sourceforge.net/>
+
+There are several mailing lists for SenseRelate:
+
+L<http://lists.sourceforge.net/lists/listinfo/senserelate-users/>
+
+L<http://lists.sourceforge.net/lists/listinfo/senserelate-news/>
+
+L<http://lists.sourceforge.net/lists/listinfo/senserelate-developers/>
 
 =head1 AUTHORS
 

@@ -1,4 +1,4 @@
-# $Id: WordNet-SenseRelate-AllWords.t,v 1.2 2005/04/13 00:00:16 jmichelizzi Exp $
+# $Id: WordNet-SenseRelate-AllWords.t,v 1.5 2005/04/30 15:20:52 jmichelizzi Exp $
 
 # Before `make install' is performed this script should be runnable with
 # `make test'. After `make install' it should work as `perl WordNet-SenseRelate.t'
@@ -7,7 +7,7 @@
 
 # change 'tests => 1' to 'tests => last_test_to_print';
 
-use Test::More tests => 13;
+use Test::More tests => 19;
 BEGIN {use_ok WordNet::SenseRelate::AllWords}
 BEGIN {use_ok WordNet::QueryData}
 
@@ -27,7 +27,7 @@ my $obj = WordNet::SenseRelate::AllWords->new (wordnet => $qd,
 				     contextScore => 1);
 ok ($obj);
 
-my @res = $obj->disambiguate (window => 2,
+my @res = $obj->disambiguate (window => 5,
 			      tagged => 1,
 			      context => [@context]);
 
@@ -59,6 +59,12 @@ undef @res;
 my $str = $obj->getTrace ();
 
 ok ($str);
+
+@expected = qw/my cat#n#1 be#v#1 a wise#a#1 cat#n#7/;
+
+for my $i (0..$#expected) {
+	is ($res[$i], $expected[$i]);
+}
 
 
 

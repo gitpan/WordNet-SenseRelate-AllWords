@@ -1,6 +1,6 @@
 #!/usr/local/bin/perl
 
-# $Id: wsd.pl,v 1.2 2005/04/13 00:00:16 jmichelizzi Exp $
+# $Id: wsd.pl,v 1.8 2005/05/02 02:37:13 jmichelizzi Exp $
 
 use strict;
 use warnings;
@@ -14,7 +14,7 @@ our $mconfig;
 our $contextf;
 our $compfile;
 our $stoplist;
-our $window = 3;
+our $window = 4;
 our $contextScore = 0;
 our $pairScore = 0;
 our $silent;
@@ -52,7 +52,7 @@ if ($help) {
 }
 
 if ($version) {
-    print "wsd.pl version 0.04\n";
+    print "wsd.pl version 0.05\n";
     print "Copyright (C) 2004-2005, Jason Michelizzi and Ted Pedersen\n\n";
     print "This is free software, and you are welcome to redistribute it\n";
     print "under certain conditions.  This software comes with ABSOLUTELY\n";
@@ -68,7 +68,8 @@ unless (defined $contextf) {
 }
 
 unless ($format
-        and (($format eq 'raw') or ($format eq 'parsed') or ($format eq 'tagged'))) {
+        and (($format eq 'raw') or ($format eq 'parsed')
+	     or ($format eq 'tagged') or ($format eq 'wntagged'))) {
     print STDERR "The --format argument is required. This is the type of text to be disambiguated.\n";
     showUsage ();
     exit 1;
@@ -76,6 +77,11 @@ unless ($format
 
 #my $istagged = isTagged ($contextf);
 my $istagged = $format eq 'tagged' ? 1 : 0;
+
+if ($window < 2) {
+    print STDERR "Error: the window must be 2 or larger!\n\n";
+    exit 1;
+}
 
 unless ($silent) {
     print "Current configuration:\n";
@@ -116,6 +122,8 @@ $options{pairScore} = $pairScore if defined $pairScore;
 $options{contextScore} = $contextScore if defined $contextScore;
 $options{outfile} = $outfile if defined $outfile;
 $options{forcepos} = $forcepos if defined $forcepos;
+# Easter egg
+$options{wn} = 1 if $format eq 'wntagged';
 
 my $sr = WordNet::SenseRelate::AllWords->new (%options);
 
@@ -247,7 +255,8 @@ sub showUsage
     if ($long) {
 	print "Options:\n";
 	print "\t--context FILE       a file containing the text to be disambiguated\n";
-	print "\t--format FORMAT      type of --context ('raw', 'parsed', or 'tagged')\n";
+	print "\t--format FORMAT      type of --context ('raw', 'parsed',\n";
+        print "\t                       'tagged' or 'wntagged')\n";
 	print "\t--scheme SCHEME      disambiguation scheme to use.\n";
 	print "\t                       ('normal', 'sense1', or 'random')\n";
 	print "\t--type MEASURE       the relatedness measure to use\n";
@@ -255,8 +264,8 @@ sub showUsage
 	print "\t--compounds FILE     a file of compound words known to WordNet\n";
 	print "\t--stoplist FILE      a file of regular expressions that define\n";
 	print "\t                       the words to be excluded from --context\n";
-	print "\t--window INT         include INT WordNet words to the left\n";  	
-	print "\t                       AND right in the window of context\n"; 
+	print "\t--window INT         window of context will include INT words\n";
+	print "\t                       in all, including the target word.\n";
 	print "\t--contextScore NUM   the  minimum required of a winning score\n";
 	print "\t                       to assign a sense to a target word\n";
 	print "\t--pairScore NUM      the minimum pairwise threshold when\n";
@@ -321,6 +330,19 @@ punctuation, such as I<U.S.>, I<Alzheimer's>, I<S/N>, etc.
 Similar to parsed, but the input text has been part-of-speech tagged with
 Penn Treebank tags (perhaps using the Brill tagger).
 
+=item wntagged
+
+Similar to tagged, except that the input should only contain words known to
+WordNet, and each word should have a letter indicating the part of speech
+('n', 'v', 'a', or 'r' for nouns, verbs, adjectives, and adverbs).
+For example:
+
+  dog#n run#v fast#r
+
+Additionally, no attempt will be made to search for other valid forms of the
+words in the input.  For example, if 'dogs#n' occurs in the input, the
+program will not attempt to use other forms such as 'dog#n'.
+
 =back
 
 =item --scheme=B<SCHEME>
@@ -360,11 +382,18 @@ alternative would be /\ba\b/.
 
 =item --window=B<INTEGER>
 
-Defines the size of the window of context. The default value is 3, which 
-means that 3 words to the left, and 3 words to the right are used by the 
-algorithm. Note that stop words and words not known to WordNet are 
-excluded from the window of context prior to determining the size, so the  
-window is always made up of WordNet words. 
+Defines the size of the window of context.  The default is 4.  A window
+size of N means that there will be a total of N words in the context
+window, including the target word.  If N is a (positive) even number,
+then there will be one more word on the left side of the target word
+than on the right.
+
+For example, if the window size is 4, then there will be two words on
+the left side of the target word and one on the right.  If the window
+is 5, then there will be two words on each side of the target word.
+
+The minimum window size is 2.  A smaller window would mean that there
+were no context words in the window.
 
 =item --contextScore=B<REAL>
 
@@ -392,34 +421,19 @@ Turn tracing on/off.  A value of zero turns tracing off, a non-zero value
 turns tracing on.  The different trace levels can be added together
 to see the combined traces.  The trace levels are:
 
-=over
+  1 Show the context window for each pass through the algorithm.
 
-=item 1
+  2 Display winning score for each pass (i.e., for each target word).
 
-Show the context window for each pass through the algorithm.
+  4 Display the non-zero scores for each sense of each target
+    word (overrides 2).
 
-=item 2
+  8 Display the non-zero values from the semantic relatedness measures.
 
-Display the winning score for each pass (i.e., for each target word). 
+ 16 Show the zero values as well when combined with either 4 or 8.
+    When not used with 4 or 8, this has no effect.
 
-=item 4
-
-Display the non-zero scores for each sense of each target word (overrides 2).
-
-=item 8
-
-Display the non-zero values from the semantic relatedness measures.
-
-=item 16
-
-Show the zero values as well when combined with either 4 or 8.  When not
-used with 4 or 8, this has no effect.
-
-=item 32
-
-Display traces from the semantic relatedness module.
-
-=back
+ 32 Display traces from the semantic relatedness module.
 
 =item --silent
 
@@ -428,12 +442,29 @@ final output.
 
 =item --forcepos
 
-Turn part of speech coercion on.  POS coercion forces other words in the
-context window to be of the same part of speech as the target word.  This
-may be useful when using a measure of semantic similarity that only works
-with noun-noun and verb-verb pairs.
+Turn part of speech coercion on.  POS coercion attempts to force other words
+in the context window to be of the same part of speech as the target word.
+If the text is POS tagged, the POS tags will be ignored.
+POS coercion  may be useful when using a measure of semantic similarity that
+only works with noun-noun and verb-verb pairs.
 
 =back
+
+=head1 SEE ALSO
+
+WordNet::SenseRelate::AllWords(3)
+
+The main web page for SenseRelate is
+
+L<http://senserelate.sourceforge.net/>
+
+There are several mailing lists for SenseRelate:
+
+L<http://lists.sourceforge.net/lists/listinfo/senserelate-users/>
+
+L<http://lists.sourceforge.net/lists/listinfo/senserelate-news/>
+
+L<http://lists.sourceforge.net/lists/listinfo/senserelate-developers/>
 
 =head1 AUTHORS
 

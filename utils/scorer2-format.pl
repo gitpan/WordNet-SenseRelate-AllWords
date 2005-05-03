@@ -4,6 +4,13 @@ use strict;
 use warnings;
 
 my $infile = shift;
+
+unless (defined $infile) {
+    print STDERR "No input file specified\n";
+    showUsage();
+    exit 1;
+}
+	
 my $id = 0;
 
 open FH, '<', $infile or die "Cannot open $infile: $!";
@@ -26,16 +33,20 @@ while (my $line = <FH>) {
 }
 close FH;
 
+sub showUsage
+{
+    print "Usage: scorer2-format.pl INFILE1 [INFILE2 ...]\n";
+}
+
 __END__
 
 =head1 NAME
 
-reformat-for-senseval.pl INPUT-FILE1 [INPUT-FILE2 ...]
+scorer2-format.pl - reformat wsd.pl output for use by scorer2
 
 =head1 SYNOPSIS
 
- wsd.pl --context words.txt --silent --format parsed > file.txt
- reformat-for-senseval.pl file.txt > answer.txt
+ scorer2-format.pl INFILE1 [INFILE2 ...]
 
 =head1 DESCRIPTION
 
@@ -47,6 +58,13 @@ WordNet-SenseRelate.  The output is printed to the standard output.
 Note: be sure to run wsd.pl with the '--silent' option.  If this is not
 done, wsd.pl will print configuration information that will cause this
 script to fail.
+
+=head1 scorer2
+
+scorer2 is a C program used to score entries to Senseval.  The source
+code is available for downloading:
+
+L<http://www.senseval.org/senseval3/scoring>
 
 =head1 AUTHORS
 

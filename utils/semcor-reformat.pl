@@ -5,6 +5,7 @@ use warnings;
 
 use Getopt::Long;
 use File::Spec;
+use WordNet::QueryData;
 
 our $key = 0;
 our $semcor_dir;
@@ -13,27 +14,42 @@ my $res = GetOptions (key => \$key, "semcor=s" => \$semcor_dir,
 		      "file" => \$file);
 
 unless ($res) {
+    showUsage();
     exit 1;
 }
 
 unless (defined $semcor_dir or defined $file) {
     print STDERR "No location for input files was given\n";
+    showUsage();
     exit 2;
 }
 
 if ($semcor_dir) {
     unless (-e $semcor_dir) {
 	print STDERR "Invalid directory '$semcor_dir'\n";
+	showUsage();
 	exit 3;
     }
 }
 
+my $wn = WordNet::QueryData->new;
+my $datapath = $wn->dataPath;
+
+unless (open IDXFH, '<', "$datapath/index.sense") {
+    open IDXFH, '<', "$datapath/sense.idx" or die "Cannot open index file: #!";
+}
 
 sub wf_handler;
 sub punc_handler;
 sub p_handler;
 sub s_handler;
 sub context_handler;
+
+my %posLetter = (1 => 'n',
+		 2 => 'v',
+		 3 => 'a',
+		 4 => 'r',
+		 5 => 's');
 
 my %posMap = (JJ =>   'a',
 	      OD =>   'a',
@@ -225,35 +241,67 @@ sub wf_handler
     return unless defined $attrs{lemma};
     warn "no pos for $." unless $attrs{pos};
     return if $attrs{wnsn} eq '0'; # drop words that wordnet doesn't have
-    return if $attrs{wnsn} < 0; # more words that wordnet doesn't have
+
+    if (index ($attrs{wnsn}, ';') < $[) {
+	return if $attrs{wnsn} < 0; # more words that wordnet doesn't have
+    }
+
     $flag = 0;
+
+    my @lexsns = split /;/, $attrs{lexsn};
+    my @wnsns = split /;/, $attrs{wnsn};
+
+    my @wps;
+    foreach my $i (0..$#lexsns) {
+	# filter out unknown senses
+	next unless length $lexsns[$i] > 1;
+
+	#my ($w, $p, $s) = getWPS ($attrs{lemma}, $lexsns[$i]);
+	my ($w, $p, $s) = getWPS ($attrs{lemma}, $lexsns[$i], $wnsns[$i]);
+	push @wps, [$w, $p, $s];
+    }
+
+    if (scalar @wps < 1) {
+	return; # no valid senses
+    }
 
     if ($key) {
 	#print $context_filename, '.', $paragraph_number, '.', $sentence_number;
 	#print ' ';
-	print $attrs{lemma}, '.', $posMap{$attrs{pos}}, ' ';
-	print ++$wordnum, ' ';
-
-	# When we generate a key, we want to show the sense number.  When
-	# we generate input to WordNet-SenseRelate, then we don't want a
-	# sense number.
-	print $attrs{wnsn} if defined $attrs{wnsn};
-
+	
+	print $wps[0]->[0], '.', $wps[0]->[1], ' ';
+	print ++$wordnum;
+	foreach my $rwps (@wps) {
+	    print ' ', $rwps->[2];
+	}
 	print "\n";
+
+#	print $attrs{lemma}, '.', $posMap{$attrs{pos}}, ' ';
+#	print ++$wordnum, ' ';
+
+#	# When we generate a key, we want to show the sense number.  When
+#	# we generate input to WordNet-SenseRelate, then we don't want a
+#	# sense number.
+#	my @wnsenses = split /;/, $attrs{wnsn};
+#	print join ' ', @wnsenses;
+#	#print $attrs{wnsn} if defined $attrs{wnsn};
+
+#	print "\n";
     }
     else {
-	print $attrs{lemma};
+	print $wps[0]->[0], '#', $wps[0]->[1], ' ';
+#	print $attrs{lemma};
 
-	if (defined $attrs{pos}) {
-	    my $pos = $posMap{$attrs{pos}};
-	    if (defined $pos) {
-		print '#', $pos;
-	    }
-	    else {
-		print '#', $attrs{pos};
-	    }
-	}
-	print ' ';
+#	if (defined $attrs{pos}) {
+#	    my $pos = $posMap{$attrs{pos}};
+#	    if (defined $pos) {
+#		print '#', $pos;
+#	    }
+#	    else {
+#		print '#', $attrs{pos};
+#	    }
+#	}
+#	print ' ';
     }
 }
 
@@ -293,15 +341,43 @@ sub context_handler
     $context_filename = $attrs{filename};  
 }
 
+sub getWPS
+{
+    my $lemma = shift;
+    my $lexsn = shift;
+    my $wnsn = shift;
+    my $synset_type = substr $lexsn, 0, 1;
+    my $pos = $posLetter{$synset_type};
+    my ($sense) = $wn->querySense ("$lemma#$pos#$wnsn", "syns");
+    my ($w, $p, $s) = split /\#/, $sense;
+    return ($w, $p, $s);
+}
+
+sub showUsage
+{
+    print <<'EOU';
+semcor-reformat.pl {--semcor-dir DIR | --file FILE [FILE ...]} [--key]
+Options:
+   --semcor-dir     name of directory containing Semcor
+   --file           one or more semcor-formatted files
+   --key            generate a key for scoring purposes from the input
+EOU
+}
+
+
 __END__
 
 =head1 NAME
 
-semcor-reformat {--semcor-dir DIR | --file FILE} [--key] 
+semcor-reformat.pl - reformat SemCor files for use by wsd.pl
 
 =head1 SYNOPSIS
 
-semcor-reformat --semcor-dir ~/semcor2.0
+semcor-reformat.pl {--semcor-dir DIR | --file FILE [FILE ...]} [--key] 
+
+=head1 EXAMPLE
+
+semcor-reformat.pl --semcor-dir ~/semcor2.0
 
 =head1 DESCRIPTION
 
@@ -309,6 +385,52 @@ This scripts reads a semcor-formatted file and produces formatted
 text that can be used as input to wsd.pl.  Alternatively, if the
 --key option is specified, the output will also include the sense
 number for each work, and this output can be used as a key file.
+
+There are a few sources of data that are SemCor formatted, including
+SemCor itself and the Senseval-2 and Senseval-3 all words data sets.
+They have been made available for download by Rada Mihalcea:
+
+L<http://www.cs.unt.edu/~rada/downloads.html>
+
+Only the words that are assigned valid sense numbers will be
+passed through this program.  All other words are discarded.
+This means that only open-class words that appear in WordNet
+will be passed through.  Closed class words (pronouns, conjuctions,
+etc.) and other words not appearing in WordNet are discarded.
+
+head1 OPTIONS
+
+=over
+
+=item --semcor-dir=B<DIRECTORY>
+
+The location of the SemCor directory.  This directory will contain
+several sub-directories, including 'brown1' and 'brown2'.  Do
+not specify these sub-directories.  Only specify the directory name
+that contains them.  For example, if /home/user/semcor2.0 contains
+the brown1 and brown2 directories, you would only specify
+/home/user/semcor2.0 as the value of this option.  Do not use this
+option at the same time as the --file option.
+
+=item --file=B<FILE>
+
+A semcor-formatted file to process.  This can be used instead of the
+previous option to only specify a few Semcor files or to specify
+Senseval files.  When this option is used, multiple files can be
+specified on the command line.  For example
+
+ semcor-reformat.pl --file br-a01 br-a02 br-k18 br-m02 br-r05
+
+Do not attempt to use this option when using the previous option.
+
+=item --key
+
+Generates a key file for use by the scorer2 program instead of a file
+that can be used for wsd.pl.  The scorer2 program can be used to measure
+the performance of a word sense disambiguation program.  See the documentation
+for scorer2-format.pl for more information.
+
+=back
 
 =head1 AUTHORS
 

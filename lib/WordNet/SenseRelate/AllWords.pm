@@ -1,6 +1,6 @@
 package WordNet::SenseRelate::AllWords;
 
-# $Id: AllWords.pm,v 1.1.1.1 2005/04/12 23:51:51 jmichelizzi Exp $
+# $Id: AllWords.pm,v 1.7 2005/04/30 21:45:14 jmichelizzi Exp $
 
 =head1 NAME
 
@@ -50,7 +50,7 @@ use Carp;
 
 our @ISA = ();
 
-our $VERSION = '0.04';
+our $VERSION = '0.05';
 
 my %wordnet;
 my %compounds;
@@ -61,6 +61,7 @@ my %contextScore;
 my %trace;
 my %outfile;
 my %forcepos;
+my %wnformat;
 
 # closed class words
 use constant {CLOSED => 'c',
@@ -73,6 +74,9 @@ use constant TR_ALLSCORES  =>  4;  # show all non-zero scores
 use constant TR_PAIRWISE   =>  8;  # show all the non-zero similarity scores
 use constant TR_ZERO       => 16;  
 use constant TR_MEASURE    => 32;  # show similarity measure traces
+
+# in WordNet 2.0, the longest compounds are 8 words long
+use constant MAX_COMPOUND_LENGTH => 8;
 
 
 # Penn tagset
@@ -158,35 +162,19 @@ Example:
 
 The trace levels are:
 
-=over
+  1 Show the context window for each pass through the algorithm.
 
-=item 1
+  2 Display winning score for each pass (i.e., for each target word).
 
-Show the context window for each pass through the algorithm.
+  4 Display the non-zero scores for each sense of each target
+    word (overrides 2).
 
-=item 2
+  8 Display the non-zero values from the semantic relatedness measures.
 
-Display winning score for each pass (i.e., for each target word).
+ 16 Show the zero values as well when combined with either 4 or 8.
+    When not used with 4 or 8, this has no effect.
 
-=item 4
-
-Display the non-zero scores for each sense of each target
-word (overrides 2).
-
-=item 8
-
-Display the non-zero values from the semantic relatedness measures.
-
-=item 16
-
-Show the zero values as well when combined with either 4 or 8.  When
-not used with 4 or 8, this has no effect.
-
-=item 32
-
-Display traces from the semantic relatedness module.
-
-=back
+ 32 Display traces from the semantic relatedness module.
 
 These trace levels can be added together.  For example, by specifying
 a trace level of 3, the context window will be displayed along with
@@ -210,6 +198,7 @@ sub new
     my $trace;
     my $outfile;
     my $forcepos;
+    my $wnformat = 0;
 
     while (my ($key, $val) = each %args) {
 	if ($key eq 'wordnet') {
@@ -242,6 +231,9 @@ sub new
 	}
 	elsif ($key eq 'forcepos') {
 	    $forcepos = $val;
+	}
+	elsif ($key eq 'wn') {
+	    $wnformat = $val;
 	}
 	else {
 	    croak "Unknown parameter type '$key'";
@@ -317,6 +309,8 @@ sub new
 	$forcepos{$self} = 0;
     }
 
+    $wnformat{$self} = $wnformat;
+
     return $self;
 }
 
@@ -334,6 +328,8 @@ sub DESTROY
     delete $trace{$self};
     delete $outfile{$self};
     delete $forcepos{$self};
+    delete $wnformat{$self};
+
     1;
 }
 
@@ -357,9 +353,13 @@ disambiguate() for each sentence.
 
 Parameters:
 
-  window => INTEGER    : the window size to use
+  window => INTEGER    : the window size to use.  A window size of N means
+                         that the window will include N words, including
+                         the target word.  If N is an even number, there
+                         will be one more word on the left side of the
+                         target word than on the right.
   tagged => BOOLEAN    : true if the text is tagged, false otherwise
-  scheme => normal|sense1 : the disambiguation scheme to use
+  scheme => normal|sense1|random : the disambiguation scheme to use
   context => ARRAY_REF : reference to an array of words to disambiguate
 
 Returns:  An array of disambiguated words.
@@ -369,7 +369,36 @@ Example:
   my @results =
     $wsd->disambiguate (window => 3, tagged => 0, context => [@words]);
 
-=cut
+
+=cut 
+
+#The scheme can have three different values:
+#
+#=over
+#
+#=item normal
+#
+#This is the normal mode of operation, where disambiguation is done by
+#measuring the semantic relatedness of the senses of each word with the
+#surrounding words.
+#
+#=item sense1
+#
+#In this mode, the first sense number (i.e., sense number 1) is assigned
+#to each word.  In WordNet, the first sense of a word is I<usually> the
+#most frequent sense.
+#
+#=item random
+#
+#In this mode, sense numbers are randomly assigned to each word from the
+#set of valid sense numbers for each word.  For example, the noun 'hart'
+#has three senses in WordNet 2.0, so the word would randomly be assigned
+#1, 2, or 3.  This may be useful for comparison purposes when evaluating
+#experimental results.
+#
+#
+#
+#=cut
 
 sub disambiguate
 {
@@ -479,6 +508,9 @@ sub doNormal {
     my $window = shift;
     my @context = @_;
 
+    my $lwindow = $window >> 1;   # simply divide by 2 & throw away remainder
+    my $rwindow = $window - $lwindow - 1;
+
     # get all the senses for each word
     my @senses = $self->_getSenses (@context);
 
@@ -487,6 +519,14 @@ sub doNormal {
     my @results;
 
     local $| = 1;
+
+    # here we need to do sense 1 if the window is 2 and target is first word
+    # if we didn't use sense1 on the first word, the first word in a sentence
+    # will never be assigned a sense number when the window is 2
+    my $sense1firstword = 0;
+    if (($rwindow == 0) && ($lwindow = 1)) {
+	$sense1firstword = 1;
+    }
 
     # for each word in the context, disambiguate the (target) word
     for my $targetIdx (0..$#context) {
@@ -499,9 +539,9 @@ sub doNormal {
 
 
 	# figure out which words are in the window
-	my $lower = $targetIdx - $window;
+	my $lower = $targetIdx - $lwindow;
 	$lower = 0 if $lower < 0;
-	my $upper = $targetIdx + $window;
+	my $upper = $targetIdx + $rwindow;
 	$upper = $#context if $upper > $#context;
 
 	# expand context window to the left, if necessary
@@ -544,35 +584,52 @@ sub doNormal {
 	    $trace{$self}->{string} .= "\n";
 	}
 
-
 	my $result;
-	if ($forcepos{$self}) {
-	    $result = $self->_forcedPosDisambig ($lower, $targetIdx, $upper,
-						 \@senses, \@context);
+	if ($sense1firstword) {
+	    ##########################
+	    my $word = $context[$targetIdx];
+
+	    my $t = $self->getSense1 ($context[$targetIdx]);
+	    if (defined $t) {
+		$sense1firstword = 0;
+		$result = $t;
+	    }
+	    else {
+		$result = $context[$targetIdx];
+	    }
 	}
 	else {
-	    $result = $self->_normalDisambig ($lower, $targetIdx, $upper,
-					       \@senses, \@context);
+	    if ($forcepos{$self}) {
+		$result = $self->_forcedPosDisambig ($lower, $targetIdx,
+						     $upper, \@senses,
+						     \@context);
+	    }
+	    else {
+		$result = $self->_normalDisambig ($lower, $targetIdx, $upper,
+						  \@senses, \@context);
+	    }
 	}
 	push @results, $result;
-
     }
 
     return @results;
 }
-    
+
 =item B<getTrace>
 
 Gets the current trace string and resets it to "".
 
 Parameters:
+
   None
 
 Returns:
+
   The current trace string (before resetting it).  If the returned string
   is not empty, it will end with a newline.
 
 Example:
+
   my $str = $wsd->getTrace ();
   print $str;
 
@@ -596,56 +653,79 @@ sub doSense1
     my @disambiguated;
 
     foreach my $word (@words) {
-	my %senses;
-
-	if ((my $idx = index $word, "#o") >= $[) {  # word has #o in it
-	    # remove the #o and push the string into the array
-	    push @disambiguated, substr ($word, 0, $idx);
-	    next;
-	}
-
-	my @forms = $wn->validForms ($word);
-
-	foreach my $form (@forms) {
-	    my @t = $wn->querySense ($form);
-	    if (scalar @t > 0) {
-		$senses{$form} = $t[0];
-	    }
-	}
-
-	my @best_senses;
-
-	foreach my $key (keys %senses) {
-	    my $sense = $senses{$key};
-
-	    my $freq = $wn->frequency ($sense);
-
-	    if ($#best_senses < 0) {
-		push @best_senses, [$sense, $freq];
-	    }
-	    elsif ($best_senses[$#best_senses]->[1] < $freq) {
-		@best_senses = ([$sense, $freq]);
-	    }
-	    elsif ($best_senses[$#best_senses]->[1] == $freq) {
-		push @best_senses, [$sense, $freq];
-	    }
-	    else {
-		# do nothing
-	    }
-	}
-
-	if (scalar @best_senses) {
-	    my $i = int (rand (scalar @best_senses));
-
-	    push @disambiguated, $best_senses[$i]->[0];
+	my $tmp = $self->getSense1 ($word);
+	if (defined $tmp) {
+	    push @disambiguated, $tmp;
 	}
 	else {
 	    push @disambiguated, $word;
 	}
-
-
     }
+
     return @disambiguated;
+}
+
+# gets sense number 1 for the specified word.  If the word has multiple forms,
+# then the most frequent sense is returned.  If there is more than one
+# most frequent sense with sense number 1, a sense is chosen at random.
+#
+# this is not quite the same as choosing the most frequent sense of a word.
+# The sense number 1 in wordnet is often the most frequent but not always.
+sub getSense1
+{
+    my $self = shift;
+    my $word = shift;
+    my $wn = $wordnet{$self};
+    my %senses;
+    
+    # check if word has #o in it, if it does, we can't do anything with it
+    if ((my $idx = index $word, "#o") >= $[) {
+	return undef;
+    }
+
+    my @forms;
+    unless ($wnformat{$self}) {
+	@forms = $wn->validForms ($word);
+    }
+    else {
+	@forms = $word;
+    }
+
+    foreach my $form (@forms) {
+	my @t = $wn->querySense ($form);
+	if (scalar @t > 0) {
+	    $senses{$form} = $t[0];
+	}
+    }
+
+    my @best_senses;
+
+    foreach my $key (keys %senses) {
+	my $sense = $senses{$key};
+
+	my $freq = $wn->frequency ($sense);
+
+	if ($#best_senses < 0) {
+	    push @best_senses, [$sense, $freq];
+	}
+	elsif ($best_senses[$#best_senses]->[1] < $freq) {
+	    @best_senses = ([$sense, $freq]);
+	}
+	elsif ($best_senses[$#best_senses]->[1] == $freq) {
+	    push @best_senses, [$sense, $freq];
+	}
+	else {
+	    # do nothing
+	}
+    }
+
+    if (scalar @best_senses) {
+	my $i = int (rand (scalar @best_senses));
+
+	return $best_senses[$i]->[0];
+    }
+
+    return undef;
 }
 
 # does random guessing.  This could be considered a baseline approach
@@ -668,8 +748,14 @@ sub doRandom
 	    next;
 	}
 
-	my @forms = $wn->validForms ($word);
 
+	my @forms;
+	unless ($wnformat{$self}) {
+	    @forms = $wn->validForms ($word);
+	}
+	else {
+	    @forms = $word;
+	}
 
 
 	my @senses;
@@ -751,17 +837,20 @@ sub _forcedPosDisambig
 		    
 		if ($trace{$self}->{level} & TR_PAIRWISE) {
 		    # only trace zero values if TR_ZERO is specified
-		    if (($tempScores[$k] > 0)
+		    if ((defined $tempScores[$k] and $tempScores[$k] > 0)
 			or ($trace{$self}->{level} & TR_ZERO)) {
-			my $s = "      " . $senses_ref->[$targetIdx][$i] . ' ' 
-			        . $senses_ref->[$contextIdx][$k] . ' '
-			        . $tempScores[$k];
+			my $s = "      "
+			    . $senses_ref->[$targetIdx][$i] . ' ' 
+			    . $senses_ref->[$contextIdx][$k] . ' '
+			    . (defined $tempScores[$k]
+			       ? $tempScores[$k]
+			       : 'undef');
 			push @{$traces[$i]}, $s;
 		    }
 		}
 
 		if ($trace{$self}->{level} & TR_MEASURE
-		    and (($tempScores[$k] > 0)
+		    and ((defined $tempScores[$k] and $tempScores[$k] > 0)
 			 or ($trace{$self}->{level} & TR_ZERO))) {
 		    push @{$traces[$i]}, $measure->getTraceString ();
 		}
@@ -807,7 +896,7 @@ sub _forcedPosDisambig
 	}
 
 	# ignore scores less than the threshold
-	next unless $tscore >= $contextScore{$self};
+	next unless $tscore > $contextScore{$self};
 	
 	if ($tscore > $best_tscore) {
 	    $result = $senses_ref->[$targetIdx][$i];
@@ -870,18 +959,21 @@ sub _normalDisambig
 		    
 		if ($trace{$self}->{level} & TR_PAIRWISE) {
 		    # only trace zero values if TR_ZERO is specified
-		    if (($tempScores[$k] > 0)
+		    if ((defined $tempScores[$k] and $tempScores[$k] > 0)
 			or ($trace{$self}->{level} & TR_ZERO)) {
-			my $s =  "      " .$senses_ref->[$targetIdx][$i] . ' ' 
-	                         . $senses_ref->[$contextIdx][$k] . ' '
-			         . $tempScores[$k];
+			my $s =  "      "
+			    .$senses_ref->[$targetIdx][$i] . ' ' 
+			    .$senses_ref->[$contextIdx][$k] . ' '
+			    . (defined $tempScores[$k]
+			       ? $tempScores[$k]
+			       : 'undef');
 
 			push @{$traces[$i]}, $s;
 		    }
 		}
 
 		if ($trace{$self}->{level} & TR_MEASURE
-		    and (($tempScores[$k] > 0) 
+		    and ((defined $tempScores[$k] and $tempScores[$k] > 0) 
 			 or ($trace{$self}->{level} & TR_ZERO))) {
 		    push @{$traces[$i]}, $measure->getTraceString ();
 		}
@@ -921,7 +1013,6 @@ sub _normalDisambig
 	    $trace{$self}->{string} .= "    $senses_ref->[$targetIdx][$i]: $tscore\n";
 	}
 
-	# XXX testing...
 	if (($trace{$self}->{level} & TR_MEASURE
 	     or $trace{$self}->{level} & TR_PAIRWISE)
 	    and defined $traces[$i]) {
@@ -931,7 +1022,7 @@ sub _normalDisambig
 	}
 
 	# ignore scores less than the threshold
-	next unless $tscore >= $contextScore{$self};
+	next unless $tscore > $contextScore{$self};
 	
 	if ($tscore > $best_tscore) {
 	    $result = $senses_ref->[$targetIdx][$i];
@@ -1156,7 +1247,13 @@ sub _getSenses
 	    $senses[$i] = undef;
 	}
 	else {
-	    my @forms = $self->wordnet->validForms ($context[$i]);
+	    my @forms;
+	    unless ($wnformat{$self}) {
+		@forms = $self->wordnet->validForms ($context[$i]);
+	    }
+	    else {
+		@forms = $context[$i];
+	    }
 
 	    if (scalar @forms == 0) {
 		$senses[$i] = undef;
@@ -1230,7 +1327,7 @@ sub _compoundify
     my @rvalues;
 
     my $i = 0;
-    my $j = $#words;
+    my $j = $i + MAX_COMPOUND_LENGTH;
     while ($i < $#words) {
 	my $candidate = join '_', @words[$i..$j];
 	if (defined $self->compounds ($candidate)) {
@@ -1280,15 +1377,15 @@ WordNet::Similarity::AllWords
 
 The main web page for SenseRelate is
 
-http://senserelate.sourceforge.net/
+L<http://senserelate.sourceforge.net/>
 
 There are several mailing lists for SenseRelate:
 
-http://lists.sourceforge.net/lists/list-info/senserelate-users
+L<http://lists.sourceforge.net/lists/listinfo/senserelate-users/>
 
-http://lists.sourceforge.net/lists/list-info/senserelate-news
+L<http://lists.sourceforge.net/lists/listinfo/senserelate-news/>
 
-http://lists.sourceforge.net/lists/list-info/senserelate-developers
+L<http://lists.sourceforge.net/lists/listinfo/senserelate-developers/>
 
 =head1 REFERENCES
 

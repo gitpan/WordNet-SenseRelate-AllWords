@@ -1,5 +1,22 @@
 Revision history for Perl extension WordNet::SenseRelate.
 
+0.05  Mon May 02 16:12:36 2005
+	- changed definition of context window to be total number
+	  of words
+
+	- cleaned up errors in documentation
+
+	- renamed reformat-for-senseval.pl as scorer2-format.pl
+
+	- added command-line help to scorer2-format.pl and semcor-reformat.pl
+          and expanded documentation
+	
+        - changed the compound-finding function so that only collocations
+          of length MAX_COMPOUND_LENGTH or less are considered.
+          MAX_COMPOUND_LENGTH is a constant defined in AllWords.pm.
+
+        - added new wntagged format
+
 0.04  Tue Apr 12 10:40:48 2005
 	- fixed serious bug that often prevented higher numbered senses
 	  of target words from being considered

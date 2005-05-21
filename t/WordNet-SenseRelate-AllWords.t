@@ -1,4 +1,4 @@
-# $Id: WordNet-SenseRelate-AllWords.t,v 1.5 2005/04/30 15:20:52 jmichelizzi Exp $
+# $Id: WordNet-SenseRelate-AllWords.t,v 1.8 2005/05/20 19:23:10 jmichelizzi Exp $
 
 # Before `make install' is performed this script should be runnable with
 # `make test'. After `make install' it should work as `perl WordNet-SenseRelate.t'
@@ -7,7 +7,7 @@
 
 # change 'tests => 1' to 'tests => last_test_to_print';
 
-use Test::More tests => 19;
+use Test::More tests => 26;
 BEGIN {use_ok WordNet::SenseRelate::AllWords}
 BEGIN {use_ok WordNet::QueryData}
 
@@ -67,4 +67,31 @@ for my $i (0..$#expected) {
 }
 
 
+# check that physics#n stays as physics#n not physic#n in wnformat mode
 
+@context = qw/physics#n not#r medicine#n/;
+@expected = qw/physics#n#1 not#r#1 medicine#n#2/;
+
+$obj = $obj->new (wordnet => $qd,
+                  measure => 'WordNet::Similarity::lesk',
+                  wnformat => 1);
+
+@res = $obj->disambiguate (window => 3, tagged => 0, context => [@context]);
+
+for my $i (0..$#expected) {
+    is ($res[$i], $expected[$i]);
+}
+
+
+# test fixed mode
+@context = qw/brick building fire burn/;
+@expected =qw/brick#n#1 building#n#1 fire#n#3 burn#n#3/;
+$obj = $obj->new (wordnet => $qd,
+		  measure => 'WordNet::Similarity::lesk');
+
+@res = $obj->disambiguate (window => 4, tagged => 0,
+                           scheme => 'fixed', context => [@context]);
+
+for my $i (0..$#expected) {
+    is ($res[$i], $expected[$i]);
+}

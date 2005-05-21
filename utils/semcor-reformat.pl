@@ -161,7 +161,8 @@ sub processFile
     # silly hack
     $file =~ s/<punc>([^<>]+)<\/punc>/<punc type=\"$1\" \/>/g;
 
-    while ($file =~ /<((?:\"[^\"]*\"|\'[^\']*\'|[^\'\">])*)>/g) {
+#    while ($file =~ /<((?:\"[^\"]*\"|\'[^\']*\'|[^\'\">])*)>/g) {
+    while ($file =~ /<([^>]+)>/g) {
 	processTag ($1);
     }
 
@@ -186,6 +187,8 @@ sub processTag
 	return;
     }
 
+
+
     my $attrs_string = $3;
 
     my %attrs;
@@ -200,7 +203,6 @@ sub processTag
 
 	$attrs{$a} = $val;
     }
-
     $handlers{$name} ($close_tag, %attrs);
 }
 
@@ -237,9 +239,11 @@ sub wf_handler
     return if $close_tag;
 
     my %attrs = @_;
+
     return unless $attrs{cmd} eq 'done';
     return unless defined $attrs{lemma};
     warn "no pos for $." unless $attrs{pos};
+
     return if $attrs{wnsn} eq '0'; # drop words that wordnet doesn't have
 
     if (index ($attrs{wnsn}, ';') < $[) {

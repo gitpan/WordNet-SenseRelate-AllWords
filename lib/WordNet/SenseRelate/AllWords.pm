@@ -1,6 +1,6 @@
 package WordNet::SenseRelate::AllWords;
 
-# $Id: AllWords.pm,v 1.7 2005/04/30 21:45:14 jmichelizzi Exp $
+# $Id: AllWords.pm,v 1.9 2005/05/20 19:17:36 jmichelizzi Exp $
 
 =head1 NAME
 
@@ -50,7 +50,7 @@ use Carp;
 
 our @ISA = ();
 
-our $VERSION = '0.05';
+our $VERSION = '0.06';
 
 my %wordnet;
 my %compounds;
@@ -62,6 +62,7 @@ my %trace;
 my %outfile;
 my %forcepos;
 my %wnformat;
+my %fixed;
 
 # closed class words
 use constant {CLOSED => 'c',
@@ -198,6 +199,7 @@ sub new
     my $trace;
     my $outfile;
     my $forcepos;
+    my $fixed = 0;
     my $wnformat = 0;
 
     while (my ($key, $val) = each %args) {
@@ -232,7 +234,10 @@ sub new
 	elsif ($key eq 'forcepos') {
 	    $forcepos = $val;
 	}
-	elsif ($key eq 'wn') {
+	elsif ($key eq 'fixed') {
+	    $fixed = $val;
+	}
+	elsif ($key eq 'wnformat') {
 	    $wnformat = $val;
 	}
 	else {
@@ -309,6 +314,8 @@ sub new
 	$forcepos{$self} = 0;
     }
 
+    $fixed{$self} = $fixed;
+
     $wnformat{$self} = $wnformat;
 
     return $self;
@@ -329,6 +336,7 @@ sub DESTROY
     delete $outfile{$self};
     delete $forcepos{$self};
     delete $wnformat{$self};
+    delete $fixed{$self};
 
     1;
 }
@@ -359,7 +367,7 @@ Parameters:
                          will be one more word on the left side of the
                          target word than on the right.
   tagged => BOOLEAN    : true if the text is tagged, false otherwise
-  scheme => normal|sense1|random : the disambiguation scheme to use
+  scheme => normal|sense1|random|fixed : the disambiguation scheme to use
   context => ARRAY_REF : reference to an array of words to disambiguate
 
 Returns:  An array of disambiguated words.
@@ -438,8 +446,14 @@ sub disambiguate
     elsif ($scheme eq 'random') {
 	@results = $self->doRandom (@newcontext);
     }
-    elsif ($scheme eq 'normal') {
-	@results = $self->doNormal ($pairScore, $contextScore, $window, @newcontext);
+    elsif (($scheme eq 'normal') or ($scheme eq 'fixed')) {
+	$fixed{$self} = 1 if $scheme eq 'fixed';
+	@results = $self->doNormal ($pairScore, $contextScore, $window,
+				    @newcontext);
+    }
+    else {
+	croak ("Bad scheme '$scheme'.\n", 
+	       "Scheme must be 'normal', 'sense1', 'random', or 'fixed'");
     }
 
     my @rval = map {s/\#o//; $_} @results;
@@ -609,6 +623,13 @@ sub doNormal {
 						  \@senses, \@context);
 	    }
 	}
+
+	if ($fixed{$self}) {
+	    if ($result =~ /\#[nvars]\#\d/) {
+		$senses[$targetIdx] = [$result];
+	    }
+	}
+
 	push @results, $result;
     }
 

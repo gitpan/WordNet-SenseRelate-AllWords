@@ -1,5 +1,8 @@
 Revision history for Perl extension WordNet::SenseRelate.
 
+0.06  Thu May 19 14:06:10 2005
+        - added fixed mode
+
 0.05  Mon May 02 16:12:36 2005
 	- changed definition of context window to be total number
 	  of words

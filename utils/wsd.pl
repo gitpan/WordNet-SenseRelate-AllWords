@@ -1,6 +1,6 @@
 #!/usr/local/bin/perl
 
-# $Id: wsd.pl,v 1.8 2005/05/02 02:37:13 jmichelizzi Exp $
+# $Id: wsd.pl,v 1.11 2005/05/21 18:28:50 jmichelizzi Exp $
 
 use strict;
 use warnings;
@@ -52,7 +52,7 @@ if ($help) {
 }
 
 if ($version) {
-    print "wsd.pl version 0.05\n";
+    print "wsd.pl version 0.06\n";
     print "Copyright (C) 2004-2005, Jason Michelizzi and Ted Pedersen\n\n";
     print "This is free software, and you are welcome to redistribute it\n";
     print "under certain conditions.  This software comes with ABSOLUTELY\n";
@@ -75,6 +75,13 @@ unless ($format
     exit 1;
 }
 
+unless ($scheme and (($scheme eq 'normal') or ($scheme eq 'random')
+		     or ($scheme eq 'sense1') or ($scheme eq 'fixed'))) {
+    print STDERR "The --scheme argument is required.\n";
+    showUsage ();
+    exit 1;
+}
+
 #my $istagged = isTagged ($contextf);
 my $istagged = $format eq 'tagged' ? 1 : 0;
 
@@ -90,7 +97,7 @@ unless ($silent) {
     print "    scheme        : $scheme\n";
     print "    tagged text   : ", ($istagged ? "yes" : "no"), "\n";
 
-    if ($scheme eq 'normal') {
+    if (($scheme eq 'normal') or ($scheme eq 'fixed')) {
 	# these items are only relevent to normal mode (not sense1 or random)
 	print "    measure       : $measure\n";
 	print "    window        : ", $window, "\n";
@@ -122,8 +129,7 @@ $options{pairScore} = $pairScore if defined $pairScore;
 $options{contextScore} = $contextScore if defined $contextScore;
 $options{outfile} = $outfile if defined $outfile;
 $options{forcepos} = $forcepos if defined $forcepos;
-# Easter egg
-$options{wn} = 1 if $format eq 'wntagged';
+$options{wnformat} = 1 if $format eq 'wntagged';
 
 my $sr = WordNet::SenseRelate::AllWords->new (%options);
 
@@ -148,6 +154,7 @@ else {
 }
 
 close FH;
+
 my $i = 0;
 foreach my $sentence (@sentences) {
     my @context = split /\s+/, $sentence;
@@ -257,8 +264,8 @@ sub showUsage
 	print "\t--context FILE       a file containing the text to be disambiguated\n";
 	print "\t--format FORMAT      type of --context ('raw', 'parsed',\n";
         print "\t                       'tagged' or 'wntagged')\n";
-	print "\t--scheme SCHEME      disambiguation scheme to use.\n";
-	print "\t                       ('normal', 'sense1', or 'random')\n";
+	print "\t--scheme SCHEME      disambiguation scheme to use. ('normal', \n";
+	print "\t                       'fixed', 'sense1', or 'random')\n";
 	print "\t--type MEASURE       the relatedness measure to use\n";
 	print "\t--config FILE        a configuration file for the relatedness measure\n";
 	print "\t--compounds FILE     a file of compound words known to WordNet\n";
@@ -276,6 +283,7 @@ sub showUsage
 	print "\t--silent             run silently; shows only final output\n";
         print "\t--forcepos           force all words in window of context\n";
         print "\t                       to be same pos as target (pos coercion)\n";
+	print "\t                       are assigned\n";
 	print "\t--help               show this help message\n";
 	print "\t--version            show version information\n";
     }
@@ -347,10 +355,22 @@ program will not attempt to use other forms such as 'dog#n'.
 
 =item --scheme=B<SCHEME>
 
-The disambiguation scheme to use.  Valid values are "normal", "sense1", 
-and "random". The default is "normal".  WordNet sense 1 disambiguation  
-guesses that the correct sense for each word is the first sense in WordNet  
-because the senses of words in WordNet are ranked according to frequency.   
+The disambiguation scheme to use.  Valid values are "normal", "fixed",
+"sense1", and "random". The default is "normal".  In fixed mode, once a word
+is assigned a sense number, other senses of that word won't be considered
+when disambiguating words to the right of that context word.  For example,
+if the context is
+
+  dogs run very fast
+
+and 'dogs' has been assigned sense number 1, only sense 1 of dogs will
+be used in computing relatedness values when disambiguating 'run', 'very',
+and 'fast'.
+
+WordNet sense 1
+disambiguation  guesses that the correct sense for each word is the
+first sense in WordNet because the senses of words in WordNet are
+ranked according to frequency.   
 The first sense is more likely than the second, the second is more likely  
 than the third, etc. Random selects one of the possible senses of the 
 target word randomly. 

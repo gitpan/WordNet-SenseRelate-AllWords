@@ -1,8 +1,8 @@
-# $Id: README.pod,v 1.7 2005/05/02 02:37:13 jmichelizzi Exp $
+# $Id: README.pod,v 1.9 2005/05/20 19:17:33 jmichelizzi Exp $
 
 =head1 NAME
 
-WordNet-SenseRelate-AllWords version 0.05
+WordNet-SenseRelate-AllWords version 0.06
 
 =head1 OVERVIEW
 

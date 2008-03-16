@@ -1,0 +1,228 @@
+=head1 NAME
+
+CHANGES.pod
+
+=head1 SYNOPSIS
+
+Revision history for Perl module WordNet::SenseRelate::AllWords.
+
+=head1 DESCRIPTION
+
+=over
+
+=item 0.07 
+
+Date : March 17, 2008
+
+=over
+
+=item 
+
+Added web interface support for AllWords (see /web for details) (vk)
+
+=item
+
+Updated version information in AllWords.pm to 0.07 (vk)
+
+=item 
+
+changed Changes file to CHANGES.pod (tdp)
+
+=item 
+
+added INSTALL.pod to /web (tdp)
+
+=item 
+	
+updated version, copyright, and author info in README.pod (tdp)
+
+=back
+
+=item 0.06
+
+Thu May 19 14:06:10 2005 (all changes by JM)
+
+=over
+
+=item 
+
+added fixed mode
+
+=back
+
+=item 0.05
+
+Mon May 02 16:12:36 2005 (all changes by JM)
+
+=over
+
+=item 
+
+changed definition of context window to be total number of words
+
+=item 
+
+cleaned up errors in documentation
+
+=item 
+
+renamed reformat-for-senseval.pl as scorer2-format.pl
+
+=item 
+
+added command-line help to scorer2-format.pl and semcor-reformat.pl and expanded documentation
+
+=item 
+	
+changed the compound-finding function so that only collocations of 
+length MAX_COMPOUND_LENGTH or less are considered.           
+MAX_COMPOUND_LENGTH is a constant defined in AllWords.pm.
+
+=item 
+
+added new wntagged format
+
+=back
+
+=item 0.04
+
+Tue Apr 12 10:40:48 2005 (all changes by JM)
+
+=over
+
+=item 
+
+fixed serious bug that often prevented higher numbered senses of target 
+words from being considered
+
+=item 
+
+fixed errors in wsd.pl when --format is omitted
+
+=item 
+
+added diagnostic messages when stoplist is malformed
+
+=item 
+
+fixed bug in windowing that prevented window from expanding under 
+certain circumstances
+
+=item 
+
+added new traces levels for displaying semantic relatedness scores and 
+making ouput of zero values optional
+
+=item 
+	  
+fixed bug where sense1 and random schemes would fail when used 
+with a stoplist or tagged text 
+
+=item 
+
+clarified description of window in documentation
+
+=item 
+
+added sample stoplist
+
+=item 
+
+suppress irrelevant configuration information when wsd.pl is run under 
+sense1 or random
+
+=item 
+
+updated test scripts to reflect recent changes
+
+=item 
+
+renamed as WordNet::SenseRelate::AllWords
+
+=back
+
+=item 0.03
+
+Fri Mar 11 15:25:18 2005 (all changes by JM)
+
+=over
+
+=item 
+
+added scripts for converting semcor files and formatting the output for 
+Senseval
+
+=item 
+
+added another test script
+
+=item 
+
+changed the input format(s) to wsd.pl
+
+=item 
+
+expanded documentation
+
+=back
+
+=item 0.02
+
+Mon Jan 17 10:01:00 2005 (all changes by JM)
+
+=over
+
+=item 
+
+added part of speech coercion option
+
+=item 
+
+expanded discussions in README
+
+=back
+
+=item 0.01
+
+Wed Nov  3 12:52:33 2004 (all changes by JM)
+
+=over
+
+=item 
+
+original version; created by h2xs 1.23 with options 
+-n WordNet::SenseRelate -X -b 5.6.0
+
+=back
+
+=back
+
+=head1 AUTHORS
+
+ Varada Kolhatkar, University of Minnesota, Duluth
+ kolha002 at d.umn.edu
+
+ Ted Pedersen, University of Minnesota, Duluth
+ tpederse at d.umn.edu
+
+This document last modified by :
+$Id: CHANGES.pod,v 1.2 2008/03/16 22:27:07 tpederse Exp $
+
+=head1 SEE ALSO
+
+=head1 COPYRIGHT AND LICENSE
+
+Copyright (c) 2008, Varada Kolhatkar, Ted Pedersen, Jason Michelizzi
+
+Permission is granted to copy, distribute and/or modify this document
+under the terms of the GNU Free Documentation License, Version 1.2
+or any later version published by the Free Software Foundation;
+with no Invariant Sections, no Front-Cover Texts, and no Back-Cover
+Texts.
+
+Note: a copy of the GNU Free Documentation License is available on
+the web at L<http://www.gnu.org/copyleft/fdl.html> and is included in
+this distribution as FDL.txt.
+
+=cut
+

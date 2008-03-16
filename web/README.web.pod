@@ -1,0 +1,167 @@
+=head1 NAME
+
+README.web.pod - README file for web interface of WordNet::AllWords
+
+=head1 SYNOPSIS
+
+This document briefly describes the web interface of SenseRelate::AllWords. The web interface allows user to enter a sentence along with different options, reads the data entered by the user, calls appropriate AllWords.pm methods and displays results.
+
+=head1 DESCRIPTION
+
+=head2 Software Dependencies
+
+The following Modules are required by SenseRelate::AllWords web 
+interface
+
+ WordNet::Tools
+ WordNet::SenseRelate::AllWords
+ WordNet::SenseRelate::Tools
+
+All of these modules are available at CPAN. Please refer to INSTALL.pod 
+of WordNet-SenseRelate-AllWords for information about installing 
+dependencies.
+
+=head2 Web Interface File Structure
+
+This web interface distribution contains two 
+directories: 
+
+ 1) cgi-bin/allwords 
+ 2) htdocs/allwords 
+
+The cgi-bin/allwords directory contains the following three Perl scripts:
+ 
+ 1) allwords.cgi
+ 2) allwords_server.pl
+ 3) version.cgi
+
+The interface employs a client-server model.  The two CGI scripts,
+allwords.cgi and version.cgi, are the clients of the server 
+allwords_server.pl. It is allwords_server.pl that actually interacts 
+with AllWords.pm.
+
+The cgi-bin/allwords directory also contains the following directory, 
+which is used for temporary storage of user input: 
+
+ 1) user_data/ 
+
+The htdocs/allwords directory contains one html script and user_data 
+directory: 
+
+ 1) allwords.html
+ 2) user_data/
+
+allwords.html displays a user interface to the user and posts data to 
+allwords.cgi or version.cgi. After all processing is done, the contents 
+of cgi-bin/allwords/user_data directory are moved to  
+htdocs/allwords/user_data directory so that the user can browse his 
+input files and results.  
+
+Note that the server, allwords_server.pl should be run on the same 
+machine on which your web server is running.
+
+Please refer to the documentation of allwords_server.pl, allword.cgi and  
+version.cgi for more details about how server-client communicate with 
+each other.  
+
+=head1 OPTIONS
+
+Please refer to the README.pod of WordNet-SenseRelate-AllWords for 
+information about the various options present on the user interface. 
+This  document only discusses differences in web interface options with 
+wsd.pl options.
+
+=head2 Input Text 
+
+The sentence entered in the web interface can be one of the three formats below.
+
+=over 
+
+=item 1.
+raw :  The movie star married the director. 
+
+=item 2.
+tagged : The/DT star/NN married/VBD the/DT director/NN
+
+=item 3.
+wntagged : The star#n married#v the director#n
+
+=back
+   
+wsd.pl supports one more format, parsed format, which is NOT supported 
+in the web interface. We plan to eliminate 'parsed' and 'raw' formats 
+and replace them with 'plain' format in future release.    
+
+=head2 Stoplist
+
+If the user doesn't upload a stoplist, the default stoplist will 
+automatically be used, UNLESS the user unchecks the default stoplist 
+option (which is always on). If the user unchecks this option and does 
+not upload their own stoplist, then no stoplist will be employed. 
+
+However, if the user uploads their own stoplist and also checks the box 
+for using the default stoplist, the user's stoplist will override the 
+default and be used.
+
+=head2 Trace
+
+The trace option allows the user to select multiple trace levels at the 
+same time. The sum of all trace values is sent to AllWords.pm while 
+creating AllWords object. The trace can be viewed by clicking on 'See 
+Trace output'. It is also available in result files as trace.txt for 
+future reference.          
+
+The following options of wsd.pl are not supported in the web interface
+
+=over
+
+=item 1.
+uploading context as a file
+
+=item 2.
+parsed format.  
+This option will eventually be combined with raw
+
+=item 3.
+uploading config file
+
+=item 4.
+uploading compounds file
+
+=back
+
+=head1 AUTHORS
+
+ Varada Kolhatkar, University of Minnesota, Duluth
+ kolha002 at d.umn.edu
+
+ Ted Pedersen, University of Minnesota, Duluth
+ tpederse at d.umn.edu
+
+This document last modified by : 
+$Id: README.web.pod,v 1.3 2008/03/14 14:11:53 kvarada Exp $ 
+
+=head1 BUGS
+
+Sometimes correct messages are not displayed because currently, the web server handles the error messages which are supposed to be handled by AllWords.pm
+
+
+=head1 SEE ALSO
+
+allwords.cgi, version.cgi, INSTALL.web.pod, README.pod
+
+=head1 COPYRIGHT AND LICENSE
+
+Copyright (c) 2008, Varada Kolhatkar, Ted Pedersen, Jason Michelizzi
+
+Permission is granted to copy, distribute and/or modify this document
+under the terms of the GNU Free Documentation License, Version 1.2
+or any later version published by the Free Software Foundation;
+with no Invariant Sections, no Front-Cover Texts, and no Back-Cover
+Texts.
+
+Note: a copy of the GNU Free Documentation License is available on
+the web at L<http://www.gnu.org/copyleft/fdl.html> and is included in
+this distribution as FDL.txt.
+
+=cut

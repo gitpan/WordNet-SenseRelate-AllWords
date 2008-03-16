@@ -1,5 +1,5 @@
 NAME
-    WordNet-SenseRelate-AllWords version 0.06
+    WordNet-SenseRelate-AllWords version 0.07
 
 OVERVIEW
     This module carries out word sense disambiguation (WSD), which is the
@@ -65,6 +65,12 @@ CONTENTS
         file to see the detailed documentation; for example, 'perldoc
         wsd.pl' shows the documentation for wsd.pl.
 
+    /doc
+        This directory contains all of the *pod files used to document the
+        system. These are processed via pod2text and the output of this is
+        placed in the top level directory, although these top level text
+        files should be considered read only.
+
     /samples
         This directory contains examples of the different formats of data
         that are supported by this package. It also contains a sample
@@ -73,6 +79,12 @@ CONTENTS
 
     /t  This directory contains test scripts. These scripts are run when you
         execute 'make test'.
+
+    /web
+        This directory contains the allwords web server and interface. There
+        are detailed README and INSTALL instructions within this directory.
+        Installing the web interface is optional, and is separate from
+        installing the main package.
 
 DESCRIPTION
     Words can have multiple meanings or senses. For example, the word
@@ -311,12 +323,15 @@ SEE ALSO
     <http://lists.sourceforge.net/lists/listinfo/senserelate-developers/>
 
 AUTHORS
-    Jason Michelizzi <jmichelizzi at users.sourceforge.net>
-
     Ted Pedersen <tpederse at d.umn.edu>
 
+    Varada Kolhatkar <kolha002 at d.umn.edu>
+
+    Jason Michelizzi <jmichelizzi at users.sourceforge.net>
+
 COPYRIGHT AND LICENSE
-    Copyright (C) 2004-2005 by Jason Michelizzi and Ted Pedersen
+    Copyright (C) 2004-2005 by Jason Michelizzi and Ted Pedersen Copyright
+    (C) 2005-2008 by Varada Kolhatkar and Ted Pedersen
 
     This program is free software; you can redistribute it and/or modify it
     under the terms of the GNU General Public License as published by the

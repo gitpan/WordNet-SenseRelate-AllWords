@@ -1,0 +1,20 @@
+#!/usr/local/bin/perl
+
+=head1 NAME
+
+README.user_data.pod
+
+=head1 Purpose of the directory
+
+For each instance of the web-interface a directory is created under this 
+user_data directory.
+These user directories remain in user_data directory until the processing is 
+complete.
+Once the processing is complete the user directory is moved to htdocs/allwords 
+directory.
+If an error occurs and processing is interrupted then the user directory 
+remains here.
+
+So ideally this directory should act only as a temporary residence for these 
+user directories and should contain only this README.user_data.pod file.
+

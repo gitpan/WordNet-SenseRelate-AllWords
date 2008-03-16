@@ -1,4 +1,5 @@
-# $Id: WordNet-SenseRelate-AllWords.t,v 1.8 2005/05/20 19:23:10 jmichelizzi Exp $
+
+# $Id: WordNet-SenseRelate-AllWords.t,v 1.9 2008/03/16 23:02:23 tpederse Exp $
 
 # Before `make install' is performed this script should be runnable with
 # `make test'. After `make install' it should work as `perl WordNet-SenseRelate.t'
@@ -18,6 +19,13 @@ BEGIN {use_ok WordNet::QueryData}
 
 my $qd = WordNet::QueryData->new;
 ok ($qd);
+
+# find out what version of wordnet we are using for version specific tests
+
+my $wnver = '0.0';
+$wnver = $qd->version() if($qd->can('version'));
+
+# 
 
 my @context = ('my/PRP$', 'cat/NN', 'is/VBZ', 'a/DT', 'wise/JJ', 'cat/NN');
 
@@ -85,7 +93,19 @@ for my $i (0..$#expected) {
 
 # test fixed mode
 @context = qw/brick building fire burn/;
-@expected =qw/brick#n#1 building#n#1 fire#n#3 burn#n#3/;
+
+# this test case changes results with version 3.0 of WordNet
+# this is what is expected prior to 3.0
+
+@expected = qw/brick#n#1 building#n#1 fire#n#3 burn#n#3/;
+
+# in 3.0 it shifts to fire#n#2, which is what we have here
+# if we see that this is 3.0 we'll change the above:
+
+ if($wnver eq '3.0') {
+   @expected =qw/brick#n#1 building#n#1 fire#n#2 burn#n#3/;
+  }
+
 $obj = $obj->new (wordnet => $qd,
 		  measure => 'WordNet::Similarity::lesk');
 

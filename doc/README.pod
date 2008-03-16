@@ -1,8 +1,8 @@
-# $Id: README.pod,v 1.9 2005/05/20 19:17:33 jmichelizzi Exp $
+# $Id: README.pod,v 1.2 2008/03/14 01:31:28 tpederse Exp $
 
 =head1 NAME
 
-WordNet-SenseRelate-AllWords version 0.06
+WordNet-SenseRelate-AllWords version 0.07
 
 =head1 OVERVIEW
 
@@ -80,6 +80,13 @@ Each of these scripts has detailed documentation.  Run perldoc on a file
 to see the detailed documentation; for example, 'perldoc wsd.pl'
 shows the documentation for wsd.pl.
 
+=item /doc
+
+This directory contains all of the *pod files used to document the 
+system. These are processed via pod2text and the output of this is 
+placed in the top level directory, although these top level text files 
+should be considered read only.
+
 =item /samples
 
 This directory contains examples of the different formats of data that  
@@ -91,6 +98,13 @@ detail.
 
 This directory contains test scripts.  These scripts are run when you
 execute 'make test'.
+
+=item /web
+
+This directory contains the allwords web server and interface. There are 
+detailed README and INSTALL instructions within this directory. 
+Installing the web interface is optional, and is separate from 
+installing the main package. 
 
 =back
 
@@ -365,13 +379,16 @@ L<http://lists.sourceforge.net/lists/listinfo/senserelate-developers/>
 
 =head1 AUTHORS
 
-Jason Michelizzi <jmichelizzi at users.sourceforge.net>
-
 Ted Pedersen <tpederse at d.umn.edu>
+
+Varada Kolhatkar <kolha002 at d.umn.edu> 
+
+Jason Michelizzi <jmichelizzi at users.sourceforge.net>
 
 =head1 COPYRIGHT AND LICENSE
 
 Copyright (C) 2004-2005 by Jason Michelizzi and Ted Pedersen
+Copyright (C) 2005-2008 by Varada Kolhatkar and Ted Pedersen
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by

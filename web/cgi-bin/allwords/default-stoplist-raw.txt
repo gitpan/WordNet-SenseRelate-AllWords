@@ -1,0 +1,13 @@
+/\bi\b/
+/\ba\b/
+/\ban\b/
+/\bas\b/
+/\bat\b/
+/\bby\b/
+/\bhe\b/
+/\bhis\b/
+/\bme\b/
+/\bor\b/
+/\bthou\b/
+/\bus\b/
+/\bwho\b/

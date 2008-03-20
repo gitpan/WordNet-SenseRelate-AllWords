@@ -6,7 +6,7 @@ SYNOPSIS
     driver, and web interface.
 
 DESCRIPTION
-  For version 0.08
+  For version 0.09
     1.  Investigate more on tagged text with WordNet::Similarity::jcn and in
         general tagged text with all options. When run via web interface of
         wsd.pl, pos tagged text and jcn together produced output that was of
@@ -77,7 +77,7 @@ AUTHORS
      Ted Pedersen, University of Minnesota, Duluth
      tpederse at d.umn.edu
 
-    This document last modified by : $Id: TODO.pod,v 1.1 2008/03/14 01:27:31
+    This document last modified by : $Id: TODO.pod,v 1.2 2008/03/20 05:36:50
     tpederse Exp $
 
 SEE ALSO

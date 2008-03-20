@@ -1,5 +1,5 @@
 
-# $Id: WordNet-SenseRelate-AllWords.t,v 1.9 2008/03/16 23:02:23 tpederse Exp $
+# $Id: WordNet-SenseRelate-AllWords.t,v 1.10 2008/03/20 05:37:39 tpederse Exp $
 
 # Before `make install' is performed this script should be runnable with
 # `make test'. After `make install' it should work as `perl WordNet-SenseRelate.t'
@@ -8,7 +8,7 @@
 
 # change 'tests => 1' to 'tests => last_test_to_print';
 
-use Test::More tests => 26;
+use Test::More tests => 30;
 BEGIN {use_ok WordNet::SenseRelate::AllWords}
 BEGIN {use_ok WordNet::QueryData}
 
@@ -115,3 +115,21 @@ $obj = $obj->new (wordnet => $qd,
 for my $i (0..$#expected) {
     is ($res[$i], $expected[$i]);
 }
+
+# create a test case to make sure that we don't explode if window size 
+# is omitted - the only required parameter should be context, fixes
+# bug reported for 0.07 
+
+@context = qw/winter spring summer fall/;
+
+@expected = qw/winter#n#1 spring#n#1 summer#n#1 fall#n#1/;
+
+$obj = $obj->new (wordnet => $qd,
+		  measure => 'WordNet::Similarity::lesk');
+
+@res = $obj->disambiguate (context => [@context]);
+
+for my $i (0..$#expected) {
+    is ($res[$i], $expected[$i]);
+}
+

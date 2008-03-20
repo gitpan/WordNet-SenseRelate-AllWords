@@ -1,6 +1,6 @@
 package WordNet::SenseRelate::AllWords;
 
-# $Id: AllWords.pm,v 1.10 2008/03/16 20:44:30 kvarada Exp $
+# $Id: AllWords.pm,v 1.12 2008/03/20 05:38:35 tpederse Exp $
 
 =head1 NAME
 
@@ -11,9 +11,15 @@ WordNet::SenseRelate::AllWords - perform Word Sense Disambiguation
   use WordNet::SenseRelate::AllWords;
   use WordNet::QueryData;
   my $qd = WordNet::QueryData->new;
+  defined $qd or die "Construction of WordNet::QueryData failed";
+
   my $wsd = WordNet::SenseRelate::AllWords->new (wordnet => $qd,
                                                  measure => 'WordNet::Similarity::lesk');
-  my @results = $wsd->disambiguate ();
+
+  my @context = qw/the bridge is held up by red_tape/;
+  my @results = $wsd->disambiguate (window => 3,
+				    context => [@context]);
+  print "@results\n";
 
 =head1 DESCRIPTION
 
@@ -50,7 +56,7 @@ use Carp;
 
 our @ISA = ();
 
-our $VERSION = '0.07';
+our $VERSION = '0.08';
 
 my %wordnet;
 my %compounds;
@@ -78,7 +84,6 @@ use constant TR_MEASURE    => 32;  # show similarity measure traces
 
 # in WordNet 2.0, the longest compounds are 8 words long
 use constant MAX_COMPOUND_LENGTH => 8;
-
 
 # Penn tagset
 my %wnTag = (
@@ -130,8 +135,6 @@ my %wnTag = (
     SYM => undef,
     LS => undef,
     );
-
-
 
 =item B<new>Z<>
 
@@ -414,7 +417,7 @@ sub disambiguate
     my %options = @_;
     my $contextScore;
     my $pairScore;
-    my $window;
+    my $window = 3;   # default the window to 3 to avoid failure if omitted
     my $tagged;
     my @context;
     my $scheme = 'normal';

@@ -10,6 +10,33 @@ Revision history for Perl module WordNet::SenseRelate::AllWords.
 
 =over
 
+=item 0.08
+
+Date : March 20, 2008 (all changes by TDP)
+
+=over
+
+=item 
+
+Fixed bug in AllWords.pm that caused disambiguate to fail when window 
+not specified. we now default to window size 3.
+
+=item 
+
+Fixed synopsis in AllWords.pm to provide a cut and paste program that 
+should run
+
+=item
+
+Modified Makefile.PL to allow for use of 'make dist' and create META.yml
+
+=item
+
+Changed release procedure, now using 'make dist' in order to avoid CVS 
+export, and also create a directory that unpacks with a version number.
+
+=back 
+
 =item 0.07 
 
 Date : March 17, 2008
@@ -206,7 +233,7 @@ original version; created by h2xs 1.23 with options
  tpederse at d.umn.edu
 
 This document last modified by :
-$Id: CHANGES.pod,v 1.2 2008/03/16 22:27:07 tpederse Exp $
+$Id: CHANGES.pod,v 1.3 2008/03/20 05:36:50 tpederse Exp $
 
 =head1 SEE ALSO
 

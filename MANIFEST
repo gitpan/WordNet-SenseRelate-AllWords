@@ -34,3 +34,4 @@ web/htdocs/allwords/allwords.html
 web/htdocs/allwords/user_data/README.user_data.pod
 web/INSTALL.web.pod
 web/README.web.pod
+META.yml                                 Module meta-data (added by MakeMaker)

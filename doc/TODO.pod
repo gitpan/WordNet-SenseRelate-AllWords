@@ -9,7 +9,7 @@ driver, and web interface.
 
 =head1 DESCRIPTION
 
-=head2 For version 0.08
+=head2 For version 0.09
 
 =over
 
@@ -113,7 +113,7 @@ testing be confined to one file per module or program as it is now.
  tpederse at d.umn.edu
 
 This document last modified by : 
-$Id: TODO.pod,v 1.1 2008/03/14 01:27:31 tpederse Exp $ 
+$Id: TODO.pod,v 1.2 2008/03/20 05:36:50 tpederse Exp $ 
 
 =head1 SEE ALSO
 

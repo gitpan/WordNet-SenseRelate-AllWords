@@ -1,5 +1,5 @@
 NAME
-    WordNet-SenseRelate-AllWords version 0.07
+    WordNet-SenseRelate-AllWords version 0.08
 
 OVERVIEW
     This module carries out word sense disambiguation (WSD), which is the

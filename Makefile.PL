@@ -1,4 +1,4 @@
-# $Id: Makefile.PL,v 1.3 2008/03/14 01:49:08 tpederse Exp $
+# $Id: Makefile.PL,v 1.4 2008/03/20 05:30:29 tpederse Exp $
 
 use strict;
 use warnings;
@@ -13,4 +13,9 @@ WriteMakefile(
       (ABSTRACT_FROM  => 'lib/WordNet/SenseRelate/AllWords.pm', # retrieve abstract from module
        AUTHOR         => 'Ted Pedersen <tpederse at d.umn.edu>') : ()),
     EXE_FILES         => ['utils/wsd.pl'],
+   # allows make dist to create .tar.gz with correct name/version
+   'dist'             => {'COMPRESS' => 'gzip -9f', 'SUFFIX' => 'gz'},
+   # allows for automatic creation of META.yml
+   ($ExtUtils::MakeMaker::VERSION ge '6.30_00'?
+   ('LICENSE' => 'gpl', ) : ()),
 );

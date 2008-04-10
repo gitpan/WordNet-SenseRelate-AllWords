@@ -1,5 +1,5 @@
 NAME
-    WordNet-SenseRelate-AllWords version 0.08
+    README - General Information about WordNet::SenseRelate::AllWords
 
 OVERVIEW
     This module carries out word sense disambiguation (WSD), which is the
@@ -127,7 +127,8 @@ DESCRIPTION
                 if best-score > pairScore
                     score_i = score_i + best-score
 
-        return s_ti s.t. score_i > score_j for all j in {s_t0, ..., s_tN} and score_i > contextScore
+        return s_ti s.t. score_i > score_j for all j in 
+                    {s_t0, ..., s_tN} and score_i > contextScore
 
   The Context Window
     The size of the context window can be specified by the user. A context
@@ -307,31 +308,50 @@ DESCRIPTION
     documentation before installing the module, run 'perldoc
     lib/WordNet/SenseRelate/AllWords.pm'.
 
+REFERENCES
+    1.  Christiane Fellbaum (editor) (1998) WordNet: an Electronic Lexical
+        Database. MIT Press.
+
+    2.  Ted Pedersen, Satanjeev Banerjee, and Siddharth Patwardhan (2005)
+        Maximizing Semantic Relatedness to Perform Word Sense
+        Disambiguation, University of Minnesota Supercomputing Institute
+        Research Report UMSI 2005/25, March.
+        <http://www.msi.umn.edu/general/Reports/rptfiles/2005-25.pdf>
+
+    3.  Jason Michelizzi (2005), Semantic Relatedness Applied to All Words
+        Sense Disambiguation, Master of Science Thesis, Department of
+        Computer Science, University of Minnesota, Duluth, July, 2005.
+        <http://www.d.umn.edu/~tpederse/Pubs/jason-thesis.pdf>
+
 SEE ALSO
     WordNet::SenseRelate::AllWords(3) wsd.pl(1)
 
     The main web page for SenseRelate is
 
-    <http://senserelate.sourceforge.net/>
+     L<http://senserelate.sourceforge.net/>
 
     There are several mailing lists for SenseRelate:
 
-    <http://lists.sourceforge.net/lists/listinfo/senserelate-users/>
+     L<http://lists.sourceforge.net/lists/listinfo/senserelate-users/>
 
-    <http://lists.sourceforge.net/lists/listinfo/senserelate-news/>
+     L<http://lists.sourceforge.net/lists/listinfo/senserelate-news/>
 
-    <http://lists.sourceforge.net/lists/listinfo/senserelate-developers/>
+     L<http://lists.sourceforge.net/lists/listinfo/senserelate-developers/>
 
 AUTHORS
-    Ted Pedersen <tpederse at d.umn.edu>
+     Ted Pedersen <tpederse at d.umn.edu>
 
-    Varada Kolhatkar <kolha002 at d.umn.edu>
+     Varada Kolhatkar <kolha002 at d.umn.edu> 
 
-    Jason Michelizzi <jmichelizzi at users.sourceforge.net>
+     Jason Michelizzi <jmichelizzi at users.sourceforge.net>
 
-COPYRIGHT AND LICENSE
-    Copyright (C) 2004-2005 by Jason Michelizzi and Ted Pedersen Copyright
-    (C) 2005-2008 by Varada Kolhatkar and Ted Pedersen
+    Last updated by :
+
+    # $Id: README,v 1.14 2008/04/10 04:19:35 tpederse Exp $
+
+COPYRIGHT
+    Copyright (C) 2004-2008 by Ted Pedersen, Varada Kolhatkar, Jason
+    Michelizzi
 
     This program is free software; you can redistribute it and/or modify it
     under the terms of the GNU General Public License as published by the
@@ -342,14 +362,4 @@ COPYRIGHT AND LICENSE
     WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
     Public License for more details.
-
-REFERENCES
-    1.  Christiane Fellbaum. 1998. WordNet: an Electronic Lexical Database.
-        MIT Press.
-
-    2.  Ted Pedersen, Satanjeev Banerjee, and Siddharth Patwardhan (2005)
-        Maximizing Semantic Relatedness to Perform Word Sense
-        Disambiguation, University of Minnesota Supercomputing Institute
-        Research Report UMSI 2005/25, March.
-        <http://www.msi.umn.edu/general/Reports/rptfiles/2005-25.pdf>
 

@@ -2,9 +2,9 @@
 
 =head1 NAME
 
-README.user_data.pod
+README.user_data - [Web] Explanation of user_data directory in Web interfact
 
-=head1 Purpose of the directory
+=head1 DESCRIPTION
 
 For each instance of the web-interface a directory is created under this 
 user_data directory.
@@ -18,3 +18,4 @@ remains here.
 So ideally this directory should act only as a temporary residence for these 
 user directories and should contain only this README.user_data.pod file.
 
+Last modified by : '$Id: README.user_data.pod,v 1.2 2008/04/10 04:12:02 tpederse Exp $'

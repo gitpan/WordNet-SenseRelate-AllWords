@@ -28,7 +28,6 @@ my $cgi = CGI->new;
 
 # print the HTTP header
 print $cgi->header;
-print "\nThe doc base => $ENV{'DOCUMENT_ROOT'}\n";
 
 my $usr_dir="user_data/". "user".time();
 $inputfile="$usr_dir/"."input.txt";
@@ -38,6 +37,11 @@ if($status!=0)
 	writetoCGI("Can not create the user directory $usr_dir");
 }
 
+if ($cgi->param('text1') eq "") {
+	    writetoCGI("You need to enter text for disambiguation");
+		print "<p><a href=\"http://talisker.d.umn.edu/allwords/allwords.html\">Back</a></p>";
+		die "Could not complete the request as no text was entered\n";
+}
 my $text = $cgi->param('text1') if defined $cgi->param('text1');
 my $windowSize = $cgi->param('winsize') if defined $cgi->param('winsize');
 my $format = $cgi->param('format') if defined $cgi->param('format');
@@ -195,8 +199,7 @@ EndHTML
 
 =head1 NAME
 
-allwords.cgi - CGI script implementing a portion of a web interface for
-WordNet::AllWords
+allwords.cgi - [Web] CGI script implementing a portion of a web interface for WordNet::SenseRelate::AllWords
 
 =head1 SYNOPSIS
 
@@ -209,12 +212,11 @@ WordNet::AllWords
 =head1 DESCRIPTION
 
 This script works in conjunction with allwords_server.pl to
-provide a web interface for WordNet::AllWords. The html file,
-htdocs/allwords/allwords.html posts the data entered by the user 
+provide a web interface for L<WordNet::SenseRelate::AllWords>. The html 
+file, htdocs/allwords/allwords.html posts the data entered by the user 
 to this script. The data is written in a file and sent to the server line by line.
-Then it waits for the server to send results. 
-After receiving results, they are displayed to the user.
-
+Then it waits for the server to send results. After receiving results, 
+they are displayed to the user.
 
 =head1 AUTHORS
 
@@ -225,7 +227,7 @@ After receiving results, they are displayed to the user.
  tpederse at d.umn.edu
 
 This document last modified by : 
-$Id: allwords.cgi,v 1.7 2008/03/15 22:23:12 kvarada Exp $ 
+$Id: allwords.cgi,v 1.9 2008/04/10 04:10:30 tpederse Exp $
 
 =head1 SEE ALSO
 

@@ -42,7 +42,7 @@ __END__
 
 =head1 NAME
 
-scorer2-format.pl - reformat wsd.pl output for use by scorer2
+scorer2-format.pl - Reformat wsd.pl output for use by the scorer2 evaluation program 
 
 =head1 SYNOPSIS
 
@@ -68,13 +68,14 @@ L<http://www.senseval.org/senseval3/scoring>
 
 =head1 AUTHORS
 
-Jason Michelizzi, <jmichelizzi at users.sourceforge.net>
+ Jason Michelizzi
 
-Ted Pedersen, <tpederse at d.umn.edu>
+ Ted Pedersen, University of Minnesota, Duluth
+ <tpederse at d.umn.edu>
 
-=head1 COPYRIGHT AND LICENSE
+=head1 COPYRIGHT 
 
-Copyright (C) 2005 by Jason Michelizzi and Ted Pedersen
+Copyright (C) 2005-2008 by Jason Michelizzi and Ted Pedersen
 
 This program is free software; you can redistribute it and/or modify it
 under the terms of the GNU General Public License as published by the

@@ -1,5 +1,5 @@
 NAME
-    INSTALL - installation instructions
+    INSTALL - Installation instructions for WordNet::SenseRelate::AllWords
 
 SYNOPSIS
         perl Makefile.PL
@@ -64,8 +64,8 @@ AUTHORS
      Ted Pedersen, University of Minnesota, Duluth
      tpederse at d.umn.edu
 
-    This document last modified by : $Id: INSTALL.pod,v 1.1 2008/03/14
-    01:27:31 tpederse Exp $
+    This document last modified by : $Id: INSTALL.pod,v 1.2 2008/04/09
+    01:33:22 tpederse Exp $
 
 SEE ALSO
 COPYRIGHT AND LICENSE

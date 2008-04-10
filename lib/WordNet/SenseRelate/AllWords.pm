@@ -1,10 +1,10 @@
 package WordNet::SenseRelate::AllWords;
 
-# $Id: AllWords.pm,v 1.12 2008/03/20 05:38:35 tpederse Exp $
+# $Id: AllWords.pm,v 1.14 2008/04/09 19:20:52 tpederse Exp $
 
 =head1 NAME
 
-WordNet::SenseRelate::AllWords - perform Word Sense Disambiguation
+WordNet::SenseRelate::AllWords - Disambiguate All Words in a Text based on semantic similarity and relatedness in WordNet 
 
 =head1 SYNOPSIS
 
@@ -56,7 +56,7 @@ use Carp;
 
 our @ISA = ();
 
-our $VERSION = '0.08';
+our $VERSION = '0.09';
 
 my %wordnet;
 my %compounds;
@@ -541,7 +541,7 @@ sub doNormal {
     # if we didn't use sense1 on the first word, the first word in a sentence
     # will never be assigned a sense number when the window is 2
     my $sense1firstword = 0;
-    if (($rwindow == 0) && ($lwindow = 1)) {
+    if (($rwindow == 0) && ($lwindow == 1)) {
 	$sense1firstword = 1;
     }
 

@@ -1,6 +1,6 @@
 #!/usr/local/bin/perl
 
-# $Id: wsd.pl,v 1.11 2005/05/21 18:28:50 jmichelizzi Exp $
+# $Id: wsd.pl,v 1.13 2008/04/10 04:19:36 tpederse Exp $
 
 use strict;
 use warnings;
@@ -293,11 +293,15 @@ __END__
 
 =head1 NAME
 
-wsd.pl - disambiguate words
+wsd.pl - Command line driver for WordNet::SenseRelate::AllWords 
 
 =head1 SYNOPSIS
 
-wsd.pl --context FILE --format FORMAT [--scheme SCHEME] [--type MEASURE] [--config FILE] [--compounds FILE] [--stoplist FILE] [--window INT] [--contextScore NUM] [--pairScore NUM] [--outfile FILE] [--trace INT] [--silent] [--forcepos] | --help | --version
+ wsd.pl --context FILE --format FORMAT [--scheme SCHEME] [--type MEASURE] 
+           [--config FILE] [--compounds FILE] [--stoplist FILE] 
+           [--window INT] [--contextScore NUM] [--pairScore NUM] 
+           [--outfile FILE] [--trace INT] [--silent] [--forcepos] 
+		| --help | --version
 
 =head1 DESCRIPTION
 
@@ -472,33 +476,34 @@ only works with noun-noun and verb-verb pairs.
 
 =head1 SEE ALSO
 
-WordNet::SenseRelate::AllWords(3)
+ L<WordNet::SenseRelate::AllWords>
 
 The main web page for SenseRelate is
 
-L<http://senserelate.sourceforge.net/>
+ L<http://senserelate.sourceforge.net/>
 
 There are several mailing lists for SenseRelate:
 
-L<http://lists.sourceforge.net/lists/listinfo/senserelate-users/>
+ L<http://lists.sourceforge.net/lists/listinfo/senserelate-users/>
 
-L<http://lists.sourceforge.net/lists/listinfo/senserelate-news/>
+ L<http://lists.sourceforge.net/lists/listinfo/senserelate-news/>
 
-L<http://lists.sourceforge.net/lists/listinfo/senserelate-developers/>
+ L<http://lists.sourceforge.net/lists/listinfo/senserelate-developers/>
 
 =head1 AUTHORS
 
-Jason Michelizzi, E<lt>jmichelizzi at users.sourceforge.netE<gt>
+ Jason Michelizzi 
 
-Ted Pedersen, E<lt>tpederse at d.umn.eduE<gt>
+ Ted Pedersen, University of Minnesota, Duluth
+ E<lt>tpederse at d.umn.eduE<gt>
 
 =head1 BUGS
 
-None known.
+Please report to senserelate-users mailing list. 
 
 =head1 COPYRIGHT
 
-Copyright (C) 2004-2005 Jason Michelizzi and Ted Pedersen
+Copyright (C) 2004-2008 Jason Michelizzi and Ted Pedersen
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by

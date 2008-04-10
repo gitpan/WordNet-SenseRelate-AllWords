@@ -1,21 +1,26 @@
 =head1 NAME
 
-README.web.pod - README file for web interface of WordNet::AllWords
+README.web - README file for Web interface of WordNet::SenseRelate::AllWords
 
 =head1 SYNOPSIS
 
-This document briefly describes the web interface of SenseRelate::AllWords. The web interface allows user to enter a sentence along with different options, reads the data entered by the user, calls appropriate AllWords.pm methods and displays results.
+This document briefly describes the web interface of  
+L<WordNet::SenseRelate::AllWords>. The Web interface allows user to 
+enter a sentence along with different options, reads the data entered 
+by the user, calls appropriate AllWords.pm methods and displays results.
 
 =head1 DESCRIPTION
 
 =head2 Software Dependencies
 
-The following Modules are required by SenseRelate::AllWords web 
-interface
+The following Modules are required by WordNet::SenseRelate::AllWords Web 
+interface :
 
- WordNet::Tools
- WordNet::SenseRelate::AllWords
- WordNet::SenseRelate::Tools
+=over 
+=item *  WordNet::Tools
+=item *  WordNet::SenseRelate::AllWords
+=item *  WordNet::SenseRelate::Tools
+=back
 
 All of these modules are available at CPAN. Please refer to INSTALL.pod 
 of WordNet-SenseRelate-AllWords for information about installing 
@@ -139,7 +144,7 @@ uploading compounds file
  tpederse at d.umn.edu
 
 This document last modified by : 
-$Id: README.web.pod,v 1.3 2008/03/14 14:11:53 kvarada Exp $ 
+$Id: README.web.pod,v 1.5 2008/04/10 04:19:36 tpederse Exp $ 
 
 =head1 BUGS
 

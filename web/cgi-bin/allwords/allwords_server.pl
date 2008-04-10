@@ -275,22 +275,25 @@ print $client join (' ', @res), "\n";
 
 =head1 NAME
 
-allwords_server.pl - the server for allwords.cgi and version.cgi
+allwords_server.pl - [Web] The server for allwords.cgi and version.cgi
 
 =head1 SYNOPSIS
 
-$client = $sock->accept();
+ $client = $sock->accept();
 
-my $obj = WordNet::SenseRelate::AllWords->new(%options);
+ my $obj = WordNet::SenseRelate::AllWords->new(%options);
 
-my @res = $obj->disambiguate (window => $windowSize, scheme => $scheme, tagged => $istagged, context => [@context]);
+ my @res = $obj->disambiguate (window => $windowSize, 
+				scheme => $scheme, 
+				tagged => $istagged, 
+				context => [@context]);
 
-foreach $val (@res)
+ foreach $val (@res)
 	print $client "\n$val : $gloss\n";
 	
 =head1 DESCRIPTION
 
-This script implements the backend of the web interface for
+This script implements the backend of the web interface for 
 WordNet::SenseRelate::AllWords
 
 This script listens to a port waiting for a request form allwords.cgi or
@@ -315,7 +318,7 @@ to htdocs/allwords/user_data directory.
  tpederse at d.umn.edu
 
 This document last modified by : 
-$Id: allwords_server.pl,v 1.6 2008/03/15 22:22:20 kvarada Exp $ 
+$Id: allwords_server.pl,v 1.7 2008/04/10 04:10:30 tpederse Exp $ 
 
 =head1 SEE ALSO
 

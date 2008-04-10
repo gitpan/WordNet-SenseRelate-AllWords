@@ -77,8 +77,8 @@ die "can't fork: $!" unless defined($kidpid = fork());
 
 =head1 NAME
 
-version.cgi - CGI script implementing a portion of a web interface for
-WordNet::AllWords
+version.cgi - [Web] CGI script implementing a portion of a web interface 
+for WordNet::SenseRelate::AllWords
 
 =head1 SYNOPSIS
 
@@ -89,10 +89,10 @@ WordNet::AllWords
 =head1 DESCRIPTION
 
 This script works in conjunction with allwords_server.pl to
-provide version information for WordNet::AllWords web interface. If the user requests version information,
+provide version information for WordNet::SenseRelate::AllWords web 
+interface. If the user requests version information,
 this script takes action. The script sends request to allwords_server.pl for version information. 
 After receiving results from the server, they are displayed to the user.
-
 
 =head1 AUTHORS
 
@@ -103,7 +103,7 @@ After receiving results from the server, they are displayed to the user.
  tpederse at d.umn.edu
 
 This document last modified by : 
-$Id: version.cgi,v 1.3 2008/03/13 19:42:00 kvarada Exp $ 
+$Id: version.cgi,v 1.4 2008/04/10 04:10:30 tpederse Exp $ 
 
 =head1 SEE ALSO
 

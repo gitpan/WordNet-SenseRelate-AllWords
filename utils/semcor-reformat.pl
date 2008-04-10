@@ -373,19 +373,19 @@ __END__
 
 =head1 NAME
 
-semcor-reformat.pl - reformat SemCor files for use by wsd.pl
+semcor-reformat.pl - Reformat SemCor sense tagged files for use by wsd.pl
 
 =head1 SYNOPSIS
 
-semcor-reformat.pl {--semcor-dir DIR | --file FILE [FILE ...]} [--key] 
+ semcor-reformat.pl {--semcor-dir DIR | --file FILE [FILE ...]} [--key] 
 
 =head1 EXAMPLE
 
-semcor-reformat.pl --semcor-dir ~/semcor2.0
+ semcor-reformat.pl --semcor-dir ~/semcor2.0
 
 =head1 DESCRIPTION
 
-This scripts reads a semcor-formatted file and produces formatted
+This script reads a SemCor-formatted file and produces formatted
 text that can be used as input to wsd.pl.  Alternatively, if the
 --key option is specified, the output will also include the sense
 number for each work, and this output can be used as a key file.
@@ -438,13 +438,14 @@ for scorer2-format.pl for more information.
 
 =head1 AUTHORS
 
-Jason Michelizzi, <jmichelizzi at users.sourceforge.net>
+ Jason Michelizzi
 
-Ted Pedersen, <tpederse at users.sourceforge.net>
+ Ted Pedersen, University of Minnesota, Duluth
+ tpederse at d.umn.edu
 
 =head1 COPYRIGHT AND LICENSE
 
-Copyright (C) 2005 by Jason Michelizzi and Ted Pedersen
+Copyright (C) 2005-2008 by Jason Michelizzi and Ted Pedersen
 
 This program is free software; you can redistribute it and/or modify it
 under the terms of the GNU General Public License as published by the

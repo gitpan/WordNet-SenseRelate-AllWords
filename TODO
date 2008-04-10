@@ -1,67 +1,74 @@
 NAME
-    Todo List for WordNet-SenseRelate-AllWords
+    TODO things to do for WordNet::SenseRelate::AllWords
 
 SYNOPSIS
     Plans for future versions of AllWords, including AllWords.pm, wsd.pl
     driver, and web interface.
 
 DESCRIPTION
-  For version 0.09
-    1.  Investigate more on tagged text with WordNet::Similarity::jcn and in
+  For version 0.10
+    *   Had a number of reported test failures in 0.08 due to WordNet
+        version issues. Need to add version checks to test cases to avoid
+        this. These tests should use WordNet::Tools, not the deprecated
+        version() method in QueryData.
+
+    *   Do compoundify using the WordNet::Tools module.
+
+    *   Investigate more on tagged text with WordNet::Similarity::jcn and in
         general tagged text with all options. When run via web interface of
         wsd.pl, pos tagged text and jcn together produced output that was of
         the form word#pos, with no sense indicated. Problem lies in
         AllWords.pm
 
-    2.  Add an option in web interface to upload context as a file. File
+    *   Add an option in web interface to upload context as a file. File
         should be one line per sentence, one sentence per line.
 
-    3.  Add an option to web interface for uploading config file for
+    *   Add an option to web interface for uploading config file for
         WordNet-Similarity relatedness measure. This will need to be passed
         through AllWords.pm to WordNet-Similarity.
 
-    4.  The --compound option is not working with wsd.pl, should repair as a
+    *   The --compound option is not working with wsd.pl, should repair as a
         user might want to use a subset of the compounds in WordNet.
 
-    5.  Investigate on stoplist handling for tagged text. (what is the
+    *   Investigate on stoplist handling for tagged text. (what is the
         problem here?)
 
-    6.  Change from raw and parsed to a single plain format. The plain
+    *   Change from raw and parsed to a single plain format. The plain
         format will assume that the text has already been tokenized, and
         that each white space separated string is a token (word or
         punctuation mark). The format will further assume that sentence
         boundary detection has already been performed.
 
-    7.  Move sentence splitter from wsd.pl to util program. All input
+    *   Move sentence splitter from wsd.pl to util program. All input
         formats will assume that input is one sentence per line, one line
         per sentence.
 
-    8.  Expanding set of POS tags that can be used, either by modifying
+    *   Expanding set of POS tags that can be used, either by modifying
         AllWords.pm or allowing user to submit a config file of some kind
         defining the tag set. At present limited to Penn TreeBank set of 47
         tags.
 
-    9.  Return codes from AllWords.pm to indicate if no relatedness found,
+    *   Return codes from AllWords.pm to indicate if no relatedness found,
         stopword, or not in wordnet.
 
-    10. Return codes that identifies trace level (to enable color coding).
+    *   Return codes that identifies trace level (to enable color coding).
 
-    11. Graceful shutdown and restart of web server. Allow for a stop or
+    *   Graceful shutdown and restart of web server. Allow for a stop or
         restart command from the command line, rather than having to kill
         the process.
 
-    12. Adding proper logging for server. (What does this mean?)
+    *   Adding proper logging for server. (What does this mean?)
 
-    13. Make a design decision about whether web interface should
+    *   Make a design decision about whether web interface should
         communicate directly with AllWords.pm via disambiguation method, or
         should use wsd.pl command.
 
-    14. Develop methods for testing web interface, or at least directly
+    *   Develop methods for testing web interface, or at least directly
         testing disambiguate method as used by web interface. Should have
         test cases that can be run to demonstrate problems as listed here,
         and also make sure that once they are fixed they stay fixed.
 
-    15. Expand the testing in /t for AllWords.pm and wsd.pl. Right now it's
+    *   Expand the testing in /t for AllWords.pm and wsd.pl. Right now it's
         quite minimal, and has very limited coverage. We should have
         multiple .t files, organized in some way to indicate what kind of
         testing we are doing, maybe based on format and then options being
@@ -77,7 +84,7 @@ AUTHORS
      Ted Pedersen, University of Minnesota, Duluth
      tpederse at d.umn.edu
 
-    This document last modified by : $Id: TODO.pod,v 1.2 2008/03/20 05:36:50
+    This document last modified by : $Id: TODO.pod,v 1.4 2008/04/09 22:48:44
     tpederse Exp $
 
 SEE ALSO

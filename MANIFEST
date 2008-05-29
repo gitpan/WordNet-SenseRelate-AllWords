@@ -15,10 +15,9 @@ samples/README
 samples/semcor-sample.txt
 samples/short-raw.txt
 samples/short-tagged.txt
-samples/short.txt
-samples/shorter-tagged.txt
-samples/shorter.txt
+samples/short-wntagged.txt
 samples/stoplist.txt
+t/Error-Suffixes-tagged-wntagged.t
 t/WordNet-SenseRelate-AllWords.t
 t/wsd.t
 TODO
@@ -28,10 +27,10 @@ utils/wsd.pl
 web/cgi-bin/allwords/allwords.cgi
 web/cgi-bin/allwords/allwords_server.pl
 web/cgi-bin/allwords/default-stoplist-raw.txt
-web/cgi-bin/allwords/user_data/README.user_data.pod
+web/cgi-bin/allwords/user_data/README.cgi-bin.user_data.pod
 web/cgi-bin/allwords/version.cgi
 web/htdocs/allwords/allwords.html
-web/htdocs/allwords/user_data/README.user_data.pod
+web/htdocs/allwords/user_data/README.htdocs.user_data.pod
 web/INSTALL.web.pod
 web/README.web.pod
 META.yml                                 Module meta-data (added by MakeMaker)

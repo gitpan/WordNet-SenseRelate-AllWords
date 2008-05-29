@@ -9,9 +9,17 @@ driver, and web interface.
 
 =head1 DESCRIPTION
 
-=head2 For version 0.10
+=head2 For version 0.11
 
 =over
+
+=item
+
+Store error code and error message in AllWords object which will 
+be useful in AllWords clients, that is allwords_server.pl and 
+wsd.pl.
+We can check for those errors and take appropriate actions in the
+client code. 
 
 =item
 
@@ -19,46 +27,6 @@ Had a number of reported test failures in 0.08 due to WordNet version
 issues. Need to add version checks to test cases to avoid this. These 
 tests should use WordNet::Tools, not the deprecated version() method in 
 QueryData. 
-
-=item
-
-Do compoundify using the WordNet::Tools module.
-
-=item  
-
-Investigate more on tagged text with WordNet::Similarity::jcn and in 
-general tagged text with all options. When run via web interface of 
-wsd.pl, pos tagged text and jcn together produced output that was of the 
-form word#pos, with no sense indicated. Problem lies in AllWords.pm
-
-=item 
-
-Add an option in web interface to upload context as a file. File should 
-be one line per sentence, one sentence per line. 
-
-=item  
-
-Add an option to web interface for uploading config file for 
-WordNet-Similarity relatedness measure. This will need to be passed 
-through AllWords.pm to WordNet-Similarity. 
-
-=item  
-
-The --compound option is not working with wsd.pl, should repair as a 
-user might want to use a subset of the compounds in WordNet.  
-
-=item  
-
-Investigate on stoplist handling for tagged text. (what is the problem 
-here?)
-
-=item  
-
-Change from raw and parsed to a single plain format. The plain format 
-will assume that the text has already been tokenized, and that each 
-white space separated string is a token (word or punctuation mark). The 
-format will further assume that sentence boundary detection has already 
-been performed. 
 
 =item  
 
@@ -71,11 +39,6 @@ Expanding set of POS tags that can be used, either by modifying
 AllWords.pm or allowing user to submit a config file of some kind 
 defining the tag set. At present limited to Penn TreeBank set of 47 
 tags. 
-
-=item  
-
-Return codes from AllWords.pm to indicate if no relatedness found, 
-stopword, or not in wordnet.
 
 =item  
 
@@ -124,7 +87,7 @@ testing be confined to one file per module or program as it is now.
  tpederse at d.umn.edu
 
 This document last modified by : 
-$Id: TODO.pod,v 1.4 2008/04/09 22:48:44 tpederse Exp $ 
+$Id: TODO.pod,v 1.5 2008/05/29 16:48:55 kvarada Exp $ 
 
 =head1 SEE ALSO
 

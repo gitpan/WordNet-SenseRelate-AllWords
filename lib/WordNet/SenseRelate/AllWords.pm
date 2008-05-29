@@ -1,6 +1,6 @@
 package WordNet::SenseRelate::AllWords;
 
-# $Id: AllWords.pm,v 1.14 2008/04/09 19:20:52 tpederse Exp $
+# $Id: AllWords.pm,v 1.21 2008/05/29 13:25:15 kvarada Exp $
 
 =head1 NAME
 
@@ -56,7 +56,7 @@ use Carp;
 
 our @ISA = ();
 
-our $VERSION = '0.09';
+our $VERSION = '0.10';
 
 my %wordnet;
 my %compounds;
@@ -282,7 +282,7 @@ sub new
     # check for errors
     my ($errCode, $errStr) = $simMeasure{$self}->getError;
     if ($errCode) {
-	croak $errStr;
+	carp $errStr;
     }
 
     # turn on traces in the relatedness measure if required
@@ -381,6 +381,31 @@ Example:
     $wsd->disambiguate (window => 3, tagged => 0, context => [@words]);
 
 
+Rules for attaching suffixes:
+
+Suffixes are attached to the words in the context in order to ignore those while disambiguation. 
+Note that after converting the tags to WordNet tags, tagged text is treated same as wntagged text.
+
+Below is the ordered enumeration of the words which are ignored for disambiguation and the suffixes attached to those words. 
+
+Note that we check for such words in the order below. 
+
+1 stopwords => #o 
+
+2 Only for tagged text
+    i)   Closed Class words => #CL
+    ii)  Invalid Tag => #IT
+    iii) Missing Word => #MW
+
+3 For tagged and wntagged text
+    i)	 No Tag => #NT
+    ii)  Missing Word => #MW
+    iii) Invalid Tag => #IT
+
+4 Not in WordNet => #ND
+
+5 No Relatedness found with the surrounding words => #NR
+
 =cut 
 
 #The scheme can have three different values:
@@ -407,6 +432,7 @@ Example:
 #1, 2, or 3.  This may be useful for comparison purposes when evaluating
 #experimental results.
 #
+# 
 #
 #
 #=cut
@@ -422,7 +448,7 @@ sub disambiguate
     my @context;
     my $scheme = 'normal';
 
-    while (my ($key, $value) = each %options) {
+    while (my ($key, $value) = each %options){
 	if ($key eq 'window') {
 	    $window = $value;
 	}
@@ -440,7 +466,25 @@ sub disambiguate
 	}
     }
 
+	# _initializeContext method 
+	# 1) compoundifies the text
+	# 2) checks if the word is a stopword. If it is a stopword, attaches \#o 
+	# 3) converts position tags if we have tagged text
     my @newcontext = $self->_initializeContext ($tagged, @context);
+	if($tagged || $wnformat{$self}){
+		foreach my $word (@newcontext) {
+			if ($word !~ /\#/) {
+				$word = $word . "#NT";
+			}
+			elsif( $word =~ /^#/)
+			{
+				$word = $word . "#MW";
+			}
+			elsif ( $word !~ /\#[nvar]$/ && $word !~ /\#o\b/ && $word !~ /\#CL\b/ && $word !~ /\#IT\b/) {
+				$word = $word . "#IT";
+			}
+		}
+	}
 
     my @results;
     if ($scheme eq 'sense1') {
@@ -459,11 +503,13 @@ sub disambiguate
 	       "Scheme must be 'normal', 'sense1', 'random', or 'fixed'");
     }
 
-    my @rval = map {s/\#o//; $_} @results;
-    
+   # my @rval = map {s/\#o//; $_} @results;
+    my @rval = @results;
+
     if ($outfile{$self}) {
 	open OFH, '>>', $outfile{$self} or croak "Cannot open outfile: $!";
-
+	print OFH "\n\n";
+	print OFH "Results after disambiguation...\n";
 	for my $i (0..$#context) {
 	    my $orig_word = $context[$i];
 	    my $new_word = $rval[$i];
@@ -507,11 +553,14 @@ sub _initializeContext
     else {
 	@newcontext = @context;
     }
-
+	
     # convert POS tags, if we have tagged text
     if ($tagged) {
 	foreach my $wpos (@newcontext) {
 	    $wpos = $self->convertTag ($wpos);
+		if (!defined $wpos) {
+			$wpos="#MW";
+		}
 	}
     }
 
@@ -529,7 +578,7 @@ sub doNormal {
     my $rwindow = $window - $lwindow - 1;
 
     # get all the senses for each word
-    my @senses = $self->_getSenses (@context);
+    my @senses = $self->_getSenses (\@context);
 
 
     # disambiguate
@@ -606,7 +655,7 @@ sub doNormal {
 	    ##########################
 	    my $word = $context[$targetIdx];
 
-	    my $t = $self->getSense1 ($context[$targetIdx]);
+	    my $t = $self->getSense1 (\$context[$targetIdx]);
 	    if (defined $t) {
 		$sense1firstword = 0;
 		$result = $t;
@@ -677,7 +726,7 @@ sub doSense1
     my @disambiguated;
 
     foreach my $word (@words) {
-	my $tmp = $self->getSense1 ($word);
+	my $tmp = $self->getSense1 (\$word);
 	if (defined $tmp) {
 	    push @disambiguated, $tmp;
 	}
@@ -698,30 +747,33 @@ sub doSense1
 sub getSense1
 {
     my $self = shift;
-    my $word = shift;
+    my $word_ref = shift;
     my $wn = $wordnet{$self};
     my %senses;
     
-    # check if word has #o in it, if it does, we can't do anything with it
-    if ((my $idx = index $word, "#o") >= $[) {
-	return undef;
+    # check if word has error suffix in it, if it does, we can't do anything with it
+	if (${$word_ref} =~ /\#o|\#IT|\#CL|\#NT|\#MW/) {
+		return undef;
     }
 
     my @forms;
     unless ($wnformat{$self}) {
-	@forms = $wn->validForms ($word);
+	@forms = $wn->validForms (${$word_ref});
     }
     else {
-	@forms = $word;
+	@forms = ${$word_ref};
     }
-
-    foreach my $form (@forms) {
-	my @t = $wn->querySense ($form);
-	if (scalar @t > 0) {
-	    $senses{$form} = $t[0];
+	if (scalar @forms == 0) {
+	${$word_ref}= "${$word_ref}"."#ND";
 	}
-    }
-
+	else{
+		foreach my $form (@forms) {
+		my @t = $wn->querySense ($form);
+		if (scalar @t > 0) {
+			$senses{$form} = $t[0];
+		}
+		}
+	}
     my @best_senses;
 
     foreach my $key (keys %senses) {
@@ -766,12 +818,11 @@ sub doRandom
     my @disambiguated;
 
     foreach my $word (@words) {
-	if ((my $idx = index $word, "#o") >= $[) {  # word has #o in it
-	    # remove the #o and push the string into the array
-	    push @disambiguated, substr ($word, 0, $idx);
+	if ( $word =~ /\#o|\#IT|\#CL|\#NT|\#MW/) {
+	    # push the string into the array
+	    push @disambiguated, $word;
 	    next;
 	}
-
 
 	my @forms;
 	unless ($wnformat{$self}) {
@@ -780,18 +831,18 @@ sub doRandom
 	else {
 	    @forms = $word;
 	}
-
-
 	my @senses;
-
-	foreach my $form (@forms) {
-	    my @t = $wn->querySense ($form);
-	    if (scalar @t > 0) {
-		push @senses, @t;
-	    }
+    if (scalar @forms == 0) {
+		$word= "$word"."#ND";
 	}
-
-
+	else {	
+		foreach my $form (@forms) {
+			my @t = $wn->querySense ($form);
+			if (scalar @t > 0) {
+			push @senses, @t;
+			}
+		}
+	}
 	if (scalar @senses) {
 	    my $i = int (rand (scalar @senses));
 	    push @disambiguated, $senses[$i];
@@ -1055,7 +1106,8 @@ sub _normalDisambig
     }
 
     if ($best_tscore < 0) {
-	$result = $context_ref->[$targetIdx];
+	#$result = $context_ref->[$targetIdx];
+	$result = "$context_ref->[$targetIdx]"."#NR";
     }
     
     if (ref $trace{$self} and $trace{$self}->{level} & TR_BESTSCORE) {
@@ -1088,9 +1140,8 @@ sub isStop
 {
     my $self = shift;
     my $word = shift;
-
     foreach my $re (@{$stoplist{$self}}) {
-	if ($word =~ /$re/) {
+	if ($word =~ /^$re$/) {
 	    return 1;
 	}
     }
@@ -1135,7 +1186,6 @@ sub convertTag
         # we have a contraction
         my $word = substr $wordpos, 0, $index;
         my $tag = substr $wordpos, $index + 1;
-
         return $self->convertContraction ($word, $tag);
     }
     else {
@@ -1146,8 +1196,14 @@ sub convertTag
 	if ((defined $new_pos_tag) and ($new_pos_tag =~ /[nvar]/)) {
 	    return $word . '#' . $new_pos_tag;
 	}
+	elsif((defined $new_pos_tag) and ($new_pos_tag =~ /[cf]/)){
+		return $word . '#CL';
+	}
+	elsif(!(defined $new_pos_tag)){
+		return $word . '#IT';
+	}
 	else {
-	    return $word . '#o';
+		return $word;
 	}
     }
 }
@@ -1262,25 +1318,23 @@ sub coercePos
 sub _getSenses
 {
     my $self = shift;
-    my @context = @_;
+    my $context_ref = shift;
     my @senses;
-
-    for my $i (0..$#context) {
+	for my $i (0..$#{$context_ref}){
 	# first get all forms for each POS
-	if ($context[$i] =~ /\#o/) {
+	if ( (${$context_ref}[$i] =~ /\#o|\#IT|\#CL|\#NT|\#MW/) ) {
 	    $senses[$i] = undef;
 	}
 	else {
 	    my @forms;
 	    unless ($wnformat{$self}) {
-		@forms = $self->wordnet->validForms ($context[$i]);
+		@forms = $self->wordnet->validForms (${$context_ref}[$i]);
 	    }
 	    else {
-		@forms = $context[$i];
+		@forms = ${$context_ref}[$i];
 	    }
-
 	    if (scalar @forms == 0) {
-		$senses[$i] = undef;
+		${$context_ref}[$i]= "${$context_ref}[$i]"."#ND";
 	    }
 	    else {
 		# now get all the senses for each form

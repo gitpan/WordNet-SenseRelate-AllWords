@@ -30,7 +30,6 @@ SenseRelate::AllWords web interface :
 
       WordNet::Tools
       WordNet::SenseRelate::AllWords
-      WordNet::SenseRelate::Tools
 
 All these modules are available at CPAN. Please refer to README.web.pod 
 for more information about installation of these modules. Before 
@@ -126,7 +125,7 @@ depending on hwo you have installed apache.
  tpederse at d.umn.edu
 
 This document last modified by : 
-$Id: INSTALL.web.pod,v 1.5 2008/04/10 04:19:36 tpederse Exp $ 
+$Id: INSTALL.web.pod,v 1.6 2008/05/29 15:17:54 kvarada Exp $ 
 
 =head1 SEE ALSO
 

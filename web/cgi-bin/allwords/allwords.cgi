@@ -7,7 +7,7 @@ $CGI::DISABLE_UPLOADS = 0;
 my $host='127.0.0.1';
 my $port=7070;
 
-my $OK_CHARS='-a-zA-Z0-9_$ ';
+my $OK_CHARS='-a-zA-Z0-9_\' ';
 my ($kidpid, $handle, $line);
 my %options;
 my $status;
@@ -16,6 +16,15 @@ my $inputfile;
 my $stoplistfile;
 my $defstoplistfile="./default-stoplist-raw.txt";
 my $defstop="off";
+my $contextfile;
+my $contextfilename;
+my $stoplistfilename;
+my $stoplist;
+my $configfilename;
+my $configfile;
+my $config;
+my $hostname;
+my @tracelevel=();
 
 BEGIN {
     # The carpout() function lets us modify the format of messages sent to
@@ -28,6 +37,7 @@ my $cgi = CGI->new;
 
 # print the HTTP header
 print $cgi->header;
+$hostname=$ENV{'SERVER_NAME'};
 
 my $usr_dir="user_data/". "user".time();
 $inputfile="$usr_dir/"."input.txt";
@@ -37,12 +47,29 @@ if($status!=0)
 	writetoCGI("Can not create the user directory $usr_dir");
 }
 
-if ($cgi->param('text1') eq "") {
-	    writetoCGI("You need to enter text for disambiguation");
-		print "<p><a href=\"http://talisker.d.umn.edu/allwords/allwords.html\">Back</a></p>";
-		die "Could not complete the request as no text was entered\n";
-}
+
 my $text = $cgi->param('text1') if defined $cgi->param('text1');
+$contextfile=$cgi->param('contextfile') if defined $cgi->param('contextfile');
+
+#if ($cgi->param('text1') eq "" && $cgi->param('contextfile') eq "") {
+
+if ( (!$text)  && (!$contextfile) ) {
+	    writetoCGI("\nPlease use back link to return to original page to enter your text\n");
+		print "<p><a href=\"http://$hostname/allwords/allwords.html\">Back</a></p>";
+		die "Could not complete the request as no text was entered. \n";
+}
+
+if($contextfile){
+	$contextfilename = getFileName($contextfile);
+	$context="$usr_dir/"."$contextfilename";
+	open CONTEXT,">","$context" or writetoCGI("Error in uploading contextfile.");
+	while(read($contextfile,$buffer,1024))
+	{
+		print CONTEXT $buffer;
+	}
+	close CONTEXT;	
+}
+
 my $windowSize = $cgi->param('winsize') if defined $cgi->param('winsize');
 my $format = $cgi->param('format') if defined $cgi->param('format');
 $options{wnformat} = 1 if $format eq 'wntagged';
@@ -70,10 +97,25 @@ if ($cgi->param('measure') =~ /lesk/) {
 	$options{measure}= "vector-pairs";
 }
 
+$configfile=$cgi->param('configfile') if defined $cgi->param('configfile');
+if($configfile){
+
+	$configfilename = getFileName($configfile);
+	$config="$usr_dir/"."$configfilename";
+	$options{config} = "$usr_dir/"."$configfilename";
+	open CONFIG ,">","$config" or writetoCGI("Error in uploading Config file.");
+	while(read($configfile,$buffer,1024))
+	{
+		print CONFIG $buffer;
+	}
+	close CONFIG;
+}
+
 # If the user uploads his own stoplist as well as keep the default stoplist option checked, 
 # the stoplist included by the user will always override the default
 
 $stoplistfile=$cgi->param('stoplist');
+
 if(!$stoplistfile)
 {
 	$defstop=$cgi->param('defstoplist') if defined $cgi->param('defstoplist');
@@ -84,8 +126,9 @@ if(!$stoplistfile)
 	}
 }
 else{
-	$options{stoplist} = "$usr_dir/"."$stoplistfile";
-	$stoplist="$usr_dir/"."$stoplistfile";
+	$stoplistfilename = getFileName($stoplistfile);
+	$stoplist="$usr_dir/"."$stoplistfilename";
+	$options{stoplist} = "$usr_dir/"."$stoplistfilename";
 	open STOPLIST,">","$stoplist" or writetoCGI("Error in uploading Testfile.");
 	while(read($stoplistfile,$buffer,1024))
 	{
@@ -96,19 +139,35 @@ else{
 
 $options{pairScore} = $cgi->param('pairscore') if defined $cgi->param('pairscore');
 $options{contextScore} = $cgi->param('contextscore') if defined $cgi->param('contextscore');
-$options{trace} = $cgi->param('level1') if defined $cgi->param('level1');
-$options{trace}=$options{trace} + $cgi->param('level2') if defined $cgi->param('level2'); 
-$options{trace}=$options{trace} + $cgi->param('level4') if defined $cgi->param('level4'); 
-$options{trace}=$options{trace} + $cgi->param('level8') if defined $cgi->param('level8'); 
-$options{trace}=$options{trace} + $cgi->param('level16') if defined $cgi->param('level16');
-$options{trace}=$options{trace} + $cgi->param('level32') if defined $cgi->param('level32');
+#.............................................................................
+#
+# storing different tracelevels in an array so that it would be useful to show
+# traces of different levels.
+#
+#..................................................................................
+$tracelevel[0] = defined $cgi->param('level1') ? $cgi->param('level1') : 0;
+$tracelevel[1] = defined $cgi->param('level2') ? $cgi->param('level2') : 0; 
+$tracelevel[2] = defined $cgi->param('level4') ? $cgi->param('level4') : 0; 
+$tracelevel[3] = defined $cgi->param('level8') ? $cgi->param('level8') : 0; 
+$tracelevel[4] = defined $cgi->param('level16') ? $cgi->param('level16') : 0; 
+$tracelevel[5] = defined $cgi->param('level32') ? $cgi->param('level32') : 0; 
+
+foreach $trace (@tracelevel) {
+	if( $trace > 0){
+			$options{trace}= defined $options{trace} ? ($options{trace} + $trace) : $trace;
+	}
+}
+
 $options{forcepos} = $cgi->param('forcepos') if defined $cgi->param('forcepos');
+
+
 
 # Removing unwanted characters from the raw text. If the text is tagged or wntagged, 
 # 
 #
 if ($format ne 'tagged' && $format ne 'wntagged') {
 	$text =~ s/[^$OK_CHARS]/ /g;
+	#$text =~ s/[^-a-zA-Z0-9_' ]/ /g;
 	$text =~ s/([A-Z])/\L$1/g;
 }
 
@@ -119,8 +178,16 @@ print FH "Document Base:$ENV{'DOCUMENT_ROOT'}\n";
 print FH "User Directory:$usr_dir\n";
 print IFH "User Directory:$usr_dir\n";
 
-print FH "Text to Disambiguate:$text\n";
-print IFH "Text to Disambiguate:$text\n";
+if ($text ne "") {
+	print FH "Text to Disambiguate:$text\n";
+	print IFH "Text to Disambiguate:$text\n";
+}
+else
+{
+	print FH "Contextfile:$contextfilename\n";
+	print IFH "Contextfile:$contextfilename\n";
+}
+
 
 print FH "Window size:$windowSize\n";
 print IFH "Window size:$windowSize\n";
@@ -160,6 +227,7 @@ die "can't fork: $!" unless defined($kidpid = fork());
         {
 			$line =~ s/</< /g;
 			$line =~ s/>/ >/g;
+			$line =~ s/\#o|\#NR|\#ND|\#IT|\#NT|\#CL|\#MW//g;
 			writetoCGI($line);
         }
         kill("TERM", $kidpid);                  # send SIGTERM to child
@@ -184,6 +252,7 @@ die "can't fork: $!" unless defined($kidpid = fork());
 	     print $sock $line;
 	}
 	close FH;
+	print "<p><a href=\"http://$hostname/allwords/allwords.html\">Start Over</a></p>";
     }
 
 
@@ -197,6 +266,17 @@ $output<br>
 EndHTML
 }
 
+sub getFileName
+{
+	my $path=shift;
+	my $filename;
+	my $result = rindex($path, "\/");
+	if ($result eq -1) {
+		$result = rindex($path, "\\");
+	}
+	$filename= substr $path, $result+1;
+	return $filename;
+}
 =head1 NAME
 
 allwords.cgi - [Web] CGI script implementing a portion of a web interface for WordNet::SenseRelate::AllWords
@@ -227,7 +307,7 @@ they are displayed to the user.
  tpederse at d.umn.edu
 
 This document last modified by : 
-$Id: allwords.cgi,v 1.9 2008/04/10 04:10:30 tpederse Exp $
+$Id: allwords.cgi,v 1.14 2008/05/21 20:44:53 kvarada Exp $
 
 =head1 SEE ALSO
 

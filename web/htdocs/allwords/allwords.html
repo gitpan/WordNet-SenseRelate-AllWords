@@ -6,7 +6,9 @@
   <title>AllWords</title>
 </head>
 <body>
-<span style="font-family: MS Shell Dlg;"></span>
+<dl>
+  <dt></dt>
+</dl>
 <form enctype="multipart/form-data" method="post"
  action="../../cgi-bin/allwords/allwords.cgi" name="AllWords">
   <h1><a
@@ -18,11 +20,13 @@
 &nbsp;&nbsp;&nbsp;<br>
   </h1>
 Enter a sentence<br>
-  <textarea wrap="virtual" cols="50" rows="3"
- name="text1"></textarea>&nbsp;<br>
+  <textarea wrap="virtual" cols="40" rows="3"
+ name="text1"></textarea>&nbsp;&nbsp;&nbsp;
+&nbsp; OR&nbsp;&nbsp; &nbsp; <input
+ name="contextfile" type="file"><br>
   <br>
   <a
- href="http://search.cpan.org/dist/WordNet-SenseRelate-AllWords/README.pod#The_Context_Window">Window
+ href="http://search.cpan.org/dist/WordNet-SenseRelate-AllWords/doc/README.pod#The_Context_Window">Window
 Size</a>&nbsp; &nbsp;
   <select name="winsize">
   <option>2</option>
@@ -46,7 +50,26 @@ Size</a>&nbsp; &nbsp;
   <option>20</option>
   <option>21</option>
   </select>
-&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;
+&nbsp;&nbsp;&nbsp; <a
+ href="http://search.cpan.org/dist/WordNet-SenseRelate-AllWords/utils/wsd.pl#--format=FORMAT">Format</a>&nbsp;
+&nbsp;
+  <select name="format">
+  <option selected="selected">raw</option>
+  <option>tagged</option>
+  <option>wntagged</option>
+  </select>
+&nbsp;&nbsp;&nbsp; <a
+ href="http://search.cpan.org/dist/WordNet-SenseRelate-AllWords/utils/wsd.pl#--scheme=SCHEME">Scheme</a>&nbsp;&nbsp;
+  <select name="scheme">
+  <option selected="selected">normal</option>
+  <option>fixed</option>
+  <option>sense1</option>
+  <option>random</option>
+  </select>
+&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; <a
+ href="http://search.cpan.org/dist/WordNet-SenseRelate-AllWords/doc/README.pod#Part_of_Speech_Coercion">ForcePos</a>&nbsp;&nbsp;<input
+ name="forcepos" type="checkbox"><br>
+  <br>
   <a href="http://marimba.d.umn.edu/similarity/measures.html">Measure</a>&nbsp;
   <span style="font-family: MS Shell Dlg;">
   <select name="measure">
@@ -66,7 +89,9 @@ Overlaps)</option>
   <option>vector-pairs (Gloss Vectors - pairwise)</option>
   </optgroup>
   </select>
-  </span><br>
+  </span>&nbsp;&nbsp;&nbsp;<a
+ href="http://search.cpan.org/dist/WordNet-Similarity/doc/config.pod">Config</a>&nbsp;&nbsp;<input
+ name="configfile" type="file"><br>
 &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp;
 &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp;
 &nbsp;&nbsp;&nbsp; &nbsp; &nbsp;<br>
@@ -78,28 +103,7 @@ Stoplist</a> &nbsp;<input checked="checked"
  name="defstoplist" type="checkbox">&nbsp;<br>
   <br>
   <a
- href="http://search.cpan.org/dist/WordNet-SenseRelate-AllWords/utils/wsd.pl#--format=FORMAT">Format</a>&nbsp;
-&nbsp;
-  <select name="format">
-  <option selected="selected">raw</option>
-  <option>tagged</option>
-  <option>wntagged</option>
-  </select>
-&nbsp;&nbsp;&nbsp;
-  <a
- href="http://search.cpan.org/dist/WordNet-SenseRelate-AllWords/utils/wsd.pl#--scheme=SCHEME">Scheme</a>&nbsp;&nbsp;
-  <select name="scheme">
-  <option selected="selected">normal</option>
-  <option>fixed</option>
-  <option>sense1</option>
-  <option>random</option>
-  </select>
-&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; <a
- href="http://search.cpan.org/dist/WordNet-SenseRelate-AllWords/README.pod#Part_of_Speech_Coercion">ForcePos</a>&nbsp;&nbsp;<input
- name="forcepos" type="checkbox"><br>
-  <br>
-  <a
- href="http://search.cpan.org/dist/WordNet-SenseRelate-AllWords/README.pod#Tracing/Debugging">Trace
+ href="http://search.cpan.org/dist/WordNet-SenseRelate-AllWords/doc/README.pod#Tracing/Debugging">Trace
 Level</a> &nbsp;&nbsp;<input name="level1"
  value="1" type="checkbox">1&nbsp; &nbsp; <input
  name="level2" value="2" type="checkbox">2
@@ -112,12 +116,12 @@ Level</a> &nbsp;&nbsp;<input name="level1"
   <br>
   <a
  href="http://search.cpan.org/dist/WordNet-SenseRelate-AllWords/utils/wsd.pl#--contextScore=REAL">Context
-Score</a> &nbsp;<input maxlength="3"
- name="contextscore" value="0">&nbsp;&nbsp;&nbsp;
+Score</a> &nbsp;<input maxlength="10"
+ name="contextscore" value="0.0">&nbsp;&nbsp;&nbsp;
   <a
  href="http://search.cpan.org/dist/WordNet-SenseRelate-AllWords/utils/wsd.pl#--pairScore=REAL">Pair
-Score</a> &nbsp;&nbsp;<input maxlength="3"
- name="pairscore" value="0"><br>
+Score</a> &nbsp;&nbsp;<input maxlength="10"
+ name="pairscore" value="0.0"><br>
   <br>
   <input name="disambiguate" value="Disambiguate"
  type="submit">&nbsp;&nbsp;&nbsp; <input

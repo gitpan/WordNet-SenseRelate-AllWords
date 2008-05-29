@@ -1,5 +1,5 @@
 
-# $Id: WordNet-SenseRelate-AllWords.t,v 1.16 2008/04/10 04:19:35 tpederse Exp $
+# $Id: WordNet-SenseRelate-AllWords.t,v 1.18 2008/05/28 17:08:36 kvarada Exp $
 
 # DO NOT ADD NEW TESTS TO THIS .t FILE unless you test with version
 # 2.0 and 2.1. If you have new tests, please create a new .t file
@@ -70,7 +70,7 @@ diag ("WordNet path : $wnpath");
 
 my @context = ('my/PRP$', 'cat/NN', 'is/VBZ', 'a/DT', 'wise/JJ', 'cat/NN');
 
-my $obj = WordNet::SenseRelate::AllWords->new (wordnet => $qd,
+$obj = WordNet::SenseRelate::AllWords->new (wordnet => $qd,
 				     measure => 'WordNet::Similarity::lesk',
 				     pairScore => 1,
 				     contextScore => 1);
@@ -90,7 +90,7 @@ my @res = $obj->disambiguate (window => 5,
 			      context => [@context]);
 
 no warnings 'qw';
-my @expected = qw/my cat#n#7 be#v#1 a wise#a#1 cat#n#7/;
+my @expected = qw/my#CL cat#n#7 be#v#1 a#CL wise#a#1 cat#n#7/;
 
 is ($#res, $#expected);
 
@@ -103,7 +103,7 @@ undef $obj;
 # this test and others like it fail badly with measures other than 
 # lesk...
 
-my $obj = WordNet::SenseRelate::AllWords->new (wordnet => $qd,
+$obj = WordNet::SenseRelate::AllWords->new (wordnet => $qd,
 				     measure => 'WordNet::Similarity::wup',
 				     pairScore => 0,
 				     contextScore => 0);
@@ -127,7 +127,7 @@ my $str = $obj->getTrace ();
 
 ok ($str);
 
-@expected = qw/my cat#n#1 be#v#1 a wise#a#1 cat#n#7/;
+@expected = qw/my#CL cat#n#1 be#v#1 a#CL wise#a#1 cat#n#7/;
 
 for my $i (0..$#expected) {
 	is ($res[$i], $expected[$i]);
@@ -198,5 +198,4 @@ $obj = $obj->new (wordnet => $qd,
 for my $i (0..$#expected) {
     is ($res[$i], $expected[$i]);
 }
-
 

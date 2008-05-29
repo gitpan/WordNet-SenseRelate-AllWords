@@ -1,12 +1,13 @@
 #!/usr/local/bin/perl
 
-# $Id: wsd.pl,v 1.13 2008/04/10 04:19:36 tpederse Exp $
+# $Id: wsd.pl,v 1.17 2008/05/29 19:11:26 kvarada Exp $
 
 use strict;
 use warnings;
 
 use WordNet::SenseRelate::AllWords;
 use WordNet::QueryData;
+use WordNet::Tools;
 use Getopt::Long;
 
 our $measure = 'WordNet::Similarity::lesk';
@@ -30,7 +31,6 @@ our $format; # raw|tagged|parsed
 my $ok = GetOptions ('type|measure=s' => \$measure,
 		     'config=s' => \$mconfig,
 		     'context=s' => \$contextf,
-		     'compounds=s' => \$compfile,
 		     'stoplist=s' => \$stoplist,
 		     'window=i' => \$window,
 		     'pairScore=f' => \$pairScore,
@@ -52,12 +52,9 @@ if ($help) {
 }
 
 if ($version) {
-    print "wsd.pl version 0.06\n";
-    print "Copyright (C) 2004-2005, Jason Michelizzi and Ted Pedersen\n\n";
-    print "This is free software, and you are welcome to redistribute it\n";
-    print "under certain conditions.  This software comes with ABSOLUTELY\n";
-    print "NO WARRANTY.  See the file COPYING or run 'perldoc perlgpl' for\n";
-    print "more information.\n";
+    print "wsd.pl - assign a sense to all words in a context\n";
+    print 'Last modified by : $Id: wsd.pl,v 1.17 2008/05/29 19:11:26 kvarada Exp $';
+    print "\n";
     exit;
 }
 
@@ -122,7 +119,6 @@ my %options = (wordnet => $qd,
 	       measure => $measure,
 	       );
 $options{config} = $mconfig if defined $mconfig;
-$options{compfile} = $compfile if defined $compfile;
 $options{stoplist} = $stoplist if defined $stoplist;
 $options{trace} = $trace if defined $trace;
 $options{pairScore} = $pairScore if defined $pairScore;
@@ -133,6 +129,19 @@ $options{wnformat} = 1 if $format eq 'wntagged';
 
 my $sr = WordNet::SenseRelate::AllWords->new (%options);
 
+#...........................................................................
+#
+# Compoundifying is done using compoundify method of WordNet::Tools.
+# The reason there was a --compounds option is that previoulsy we did
+# not have a centralized compoundify module like we do now (WordNet::Tools)
+# So each program would do their own compound identification.
+# We think that this is no longer a good idea and hence we removed 
+# --compounds option.
+#
+#...........................................................................
+
+my $wntools = WordNet::Tools->new($qd);
+$wntools or warn "\nCouldn't construct WordNet::Tools object"; 
 
 open (FH, '<', $contextf) or die "Cannot open '$contextf': $!";
 
@@ -147,6 +156,7 @@ if ($format eq 'raw') {
     undef $input;
     foreach my $sent (@sentences) {
 	$sent = cleanLine ($sent);
+	$sent = $wntools->compoundify($sent);
     }
 }
 else {
@@ -254,7 +264,7 @@ sub showUsage
 {
     my $long = shift;
     print "Usage: wsd.pl --context FILE --format FORMAT [--scheme SCHEME]\n";
-    print "              [--type MEASURE] [--config FILE] [--compounds FILE]\n";
+    print "              [--type MEASURE] [--config FILE] \n";
     print "              [--stoplist file] [--window INT] [--contextScore NUM]\n";
     print "              [--pairScore NUM] [--outfile FILE] [--trace INT] [--silent]\n";
     print "              | {--help | --version}\n";
@@ -268,7 +278,6 @@ sub showUsage
 	print "\t                       'fixed', 'sense1', or 'random')\n";
 	print "\t--type MEASURE       the relatedness measure to use\n";
 	print "\t--config FILE        a configuration file for the relatedness measure\n";
-	print "\t--compounds FILE     a file of compound words known to WordNet\n";
 	print "\t--stoplist FILE      a file of regular expressions that define\n";
 	print "\t                       the words to be excluded from --context\n";
 	print "\t--window INT         window of context will include INT words\n";
@@ -298,7 +307,7 @@ wsd.pl - Command line driver for WordNet::SenseRelate::AllWords
 =head1 SYNOPSIS
 
  wsd.pl --context FILE --format FORMAT [--scheme SCHEME] [--type MEASURE] 
-           [--config FILE] [--compounds FILE] [--stoplist FILE] 
+           [--config FILE] [--stoplist FILE] 
            [--window INT] [--contextScore NUM] [--pairScore NUM] 
            [--outfile FILE] [--trace INT] [--silent] [--forcepos] 
 		| --help | --version
@@ -386,10 +395,6 @@ The relatedness measure to be used.  The default is WordNet::Similarity::lesk.
 =item --config=B<FILE>
 
 The name of a configuration file for the specified relatedness measure.
-
-=item --compounds=B<FILE>
-
-A file containing compound words.
 
 =item --stoplist=B<FILE>
 

@@ -4,21 +4,22 @@ Contents:
 
 short-raw.txt
 short-tagged.txt
-short.txt.txt
-shorter-tagged.txt
-shorter.txt
+short-wntagged.txt
      
      These files are example files that can be used to test the
-     software.  The files that contain "-tagged" have been part
-     of speech tagged.  The files that contain "-raw" are raw
-     text files that have not had punctuation removed, etc.  The
-     remaining files have one sentence per line and all unwanted
-     punctuation has been removed.
+     software with each of the different input formats. 
 
 semcor-sample.txt
 
      A short extract from one Semcor 2.0 file that can be used as
-     input to semcor-reformat.pl.  Semcor can be downloaded from
+     input to utils/semcor-reformat.pl.  Semcor can be downloaded from
      http://www.cs.unt.edu/~rada/downloads.html#semcor
 
+stoplist.txt
+
+     This stoplist is based on the SMART stoplist, and is more 
+     extenstive than the default stoplist that is provided with 
+     the Web interface (web/cgi-bin/allwords/default-stoplist-raw.txt)
+     The Web stoplist is a small set of common stop words that
+     have unusual and potentially unexpected WordNet entries. 
 

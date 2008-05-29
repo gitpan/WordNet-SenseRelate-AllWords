@@ -9,10 +9,11 @@ SYNOPSIS
 
 DESCRIPTION
   Dependencies
-    Two modules are required by WordNet::SenseRelate::AllWords:
+    Three modules are required by WordNet::SenseRelate::AllWords:
 
         WordNet::QueryData
         WordNet::Similarity
+        WordNet::Tools
 
     Both modules are available from CPAN.
 

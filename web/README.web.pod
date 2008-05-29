@@ -19,7 +19,6 @@ interface :
 =over 
 =item *  WordNet::Tools
 =item *  WordNet::SenseRelate::AllWords
-=item *  WordNet::SenseRelate::Tools
 =back
 
 All of these modules are available at CPAN. Please refer to INSTALL.pod 
@@ -144,7 +143,7 @@ uploading compounds file
  tpederse at d.umn.edu
 
 This document last modified by : 
-$Id: README.web.pod,v 1.5 2008/04/10 04:19:36 tpederse Exp $ 
+$Id: README.web.pod,v 1.6 2008/05/29 15:18:04 kvarada Exp $ 
 
 =head1 BUGS
 

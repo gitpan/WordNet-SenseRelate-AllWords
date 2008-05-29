@@ -1,27 +1,37 @@
-#!/usr/local/bin/perl
+#!/usr/local/bin/perl -w
+use warnings;
+use strict;
 
 use IO::Socket;
 use WordNet::QueryData;
 use WordNet::Tools;
-use WordNet::SenseRelate::Tools;
 use WordNet::SenseRelate::AllWords;
 use WordNet::Similarity;
 
 my $wnlocation = '/usr/local/WordNet-3.0/dict';
-my $text;
-my $windowSize;
-my $format;
-my $scheme;
-my $logfile="./log.txt";
 
 my $localhost = '127.0.0.1';
 my $localport = 7070;
 my $proto = "tcp";
-my $argument=shift;
-if( $argument eq 'stop' )
-{
-	die "Server Stopped sucessfully";
-}
+my $client; 
+
+my $text;
+my @tokens;
+my $line;
+my @sentences;
+my $sentence;
+my $temp; # for accessing %options hash
+
+my @context;
+my $contextfile;
+my $windowSize;
+my $format;
+my $scheme;
+
+# result variables
+my $logfile="./log.txt";
+my $status; # to store the status of system commands to create and move directories...
+my $val; # for reading each word after disambiguation
 
 my $success = open LFH, ">>$logfile";
 if(!$success)
@@ -41,10 +51,11 @@ else
 #......................................
 
 my $qd = WordNet::QueryData->new($wnlocation);
-$qd ? print LFH "\nWordNet::QueryData object sucessfully created" :print LFH "\nCouldn't construct WordNet::QueryData object"; 
+$qd or die "\nCouldn't construct WordNet::QueryData object"; 
+
+print LFH "\nWordNet::QueryData object sucessfully created";
 
 my %options;
-my $stoplistfile;
 my $stopword;
 my $stopwordflag=0;
 my $istagged=0;
@@ -54,17 +65,19 @@ my $tracefilename;
 my $resultfilename;
 my $doc_base = "../../htdocs/allwords/user_data";
 
+# This is the name of the logfile of AllWords.pm. The file will be stored in 
+# directory of the webserver
+my $outfile = "allwords_outfile.txt";
+
 #...........................................................................
 #
-# Currently, the compounding is done using WordNet::SenseRelate::Tools. 
-# This is another way to compoundify. 
-# my $preprocess = WordNet::SenseRelate::Preprocess::Compounds->new($wntools);
-# $preprocess or print "Couldn't construct WordNet::SenseRelate::Preprocess::Compounds object";
+# Compoundifying is done using compoundify method of WordNet::Tools.
 #
 #...........................................................................
 
-my $wn = WordNet::SenseRelate::Tools->new("/usr/local/WordNet-3.0/dict");
-$wn ? print LFH "\nWordNet::SenseRelate::Tools object sucessfully created" :print LFH "\nCouldn't construct WordNet::SenseRelate::Tools object"; 
+my $wntools = WordNet::Tools->new($qd);
+$wntools or die "\nCouldn't construct WordNet::Tools object"; 
+print LFH "\nWordNet::SenseRelate::Tools object sucessfully created";
 
 my $sock = new IO::Socket::INET (
                 LocalHost => $localhost,
@@ -74,12 +87,18 @@ my $sock = new IO::Socket::INET (
                 Reuse => 1,
                 timeout => 5,
                 );
-$sock ? print LFH "\nSocket created with following details \nLocalHost => $localhost\nLocalPort => $localport\nProto => $proto" : print LFH "\nCould not create socket: $!\n";
+$sock or die "\nCould not create socket: $!\n";
+print LFH "\nSocket created with following details \nLocalHost => $localhost\nLocalPort => $localport\nProto => $proto";
+
 print LFH "\n[Server $0 accepting clients]\n";
 while ($client = $sock->accept()){	
    $client->autoflush(1);	
    print LFH "\nClient $client is accepted\n";	
    %options= (wordnet => $qd);
+   $options{outfile} = $outfile;
+   @sentences=();
+   $sentence="";
+   $text="";
    while(defined ($line = <$client>))
    {	
 	chomp($line);
@@ -87,9 +106,6 @@ while ($client = $sock->accept()){
 		if ($line =~ /version information/) 
 		{
 		    # get version information
-			my $wntools = WordNet::Tools->new($qd);
-			$wntools ? print LFH "\n WordNet::Tools object Sucessfully created" :print LFH "\nUnable to create WordNet::Tools object"; 
-
 		    my $qdver = $qd->VERSION ();
 			my $wnver = $wntools->hashCode ();
 		    my $simver = $WordNet::Similarity::VERSION;
@@ -124,7 +140,22 @@ while ($client = $sock->accept()){
 		{
 			$showversion=0;
 			$text=$tokens[1];
+			@sentences = split(/\n/,$text);
 			print LFH "\nText => $text";
+	    }
+		elsif ($line =~ /Contextfile:/)
+		{
+			$showversion=0;
+			$contextfile=$tokens[1];
+			print LFH "\nContextfile => $contextfile";
+			open (CFH, '<', "$usr_dir/"."$contextfile") or die "Cannot open '$contextfile': $!";				
+			while(<CFH>)
+			{
+				$text=$text.$_;
+			}
+			$text =~ s/\r+//g;	
+			@sentences = split(/\n+/,$text);
+			close CFH;
 	    }
 		elsif ($line =~ /Window size:/)
 		{
@@ -133,9 +164,12 @@ while ($client = $sock->accept()){
 	    }elsif ($line =~ /Format:/)
 	    {
 			$format=$tokens[1];
-			$istagged = $format eq 'tagged' ? 1 : 0;
+			$istagged = ($format eq 'tagged') ? 1 : 0;
 			print LFH "\nformat => $format";
 			$istagged eq 1 ? print LFH "\ntagged text => YES": print LFH "\ntagged text => NO" ;
+			$options{wnformat} = 1 if $format eq 'wntagged';
+			$options{wnformat} ? print LFH "\nwntagged text => YES": print LFH "\nwntagged text => NO" ;
+
 	    }elsif ($line =~ /Scheme:/)
 	    {
 			$scheme=$tokens[1];
@@ -156,7 +190,11 @@ while ($client = $sock->accept()){
 	    }elsif ($line =~ /stoplist:/)
 	    {	
 			$options{stoplist} = $tokens[1];
-	    }elsif($line eq "End\0012")
+	    }elsif ($line =~ /config:/)
+	    {	
+			$options{config} = $tokens[1];
+	    }
+		elsif($line eq "End\0012")
 		{
 			last;
 		}
@@ -168,109 +206,139 @@ foreach $temp (keys(%options))
 	print LFH "$temp=>".$options{$temp} . "\n";
 } 	
 
+	if ($format eq 'raw') {
+		foreach $sentence (@sentences) {
+			$sentence =~ s/[^-a-zA-Z0-9_' ]/ /g;
+			$sentence =~ s/([A-Z])/\L$1/g;
+ 		    chomp($sentence);
+  		    print LFH "\nText before compoundifying is => $sentence\n";
+		    $sentence = $wntools->compoundify($sentence);
+	  	    print LFH "\nText after compoundifying is => $sentence\n";
+		}
+	}
    my $obj = WordNet::SenseRelate::AllWords->new(%options);
    $obj ? print LFH "\nWordNet::SenseRelate::AllWords object successfully created":print LFH "\nCouldn't construct WordNet::SenseRelate::AllWords object";
-   chomp($text);
-   if ($format ne "tagged" && $format ne "wntagged") {
-	   my $newtext = $wn->compoundify($text);
-	   $text = $newtext;
-  	   print LFH "\nText after compoundifying is => $text";
-   }
 
-   @context=split(/ +/,$text);
+   open RFH, '>', $resultfilename or print "Cannot open $resultfilename for writing: $!";
+   foreach $sentence (@sentences) {
+	   chomp($sentence);
+	   @context=split(/ +/,$sentence);
 
-#.....................................................................
-#
-# This is the call to disambigute the sentence which client has sent
-#
-#.....................................................................
+	#.....................................................................
+	#
+	# This is the call to disambigute the sentence which client has sent
+	#
+	#.....................................................................
 
- 	my @res = $obj->disambiguate (window => $windowSize,
-				  scheme => $scheme,
-			      tagged => $istagged,
-			      context => [@context]);
+		my @res = $obj->disambiguate (window => $windowSize,
+					  scheme => $scheme,
+					  tagged => $istagged,
+					  context => [@context]);
 
-#..................................................................................
-#
-# This will change in the next version. Currently this is the code to 
-# identify if the word returned by disambiguate actually has a valid sense 
-# in the surrounding context, or if it is a stopword, or not defined by WordNet
-# or is not related to the surrounding words. This identification will eventually 
-# go in allwords.pm and any client of allwords.pm would be able to make this 
-# distinction.
-#
-#.................................................................................
-open RFH, '>', $resultfilename or print "Cannot open $resultfilename for writing: $!";
-print RFH join (' ', @res), "\n";
-print LFH join (' ', @res), "\n";
-print $client join (' ', @res), "\n";
-    foreach $val (@res)
-  	{
-		chomp($val);
-		print LFH "\nWord after disambiguation => $val";
-		if(($obj->isStop($val)) && ($val !~ /#/))
+	#..................................................................................
+	#
+	# AllWords.pm returns words with suffixes attached to it. 
+	# If #o is attached, the word is a stopword
+	# If #ND is attached the word is not defined in WordNet
+	# If #NR is attached no relatedness found with the surrounding words
+	# If #IT is attached, the word has invalid tag
+	# Otherwise, the chosen sense along with the part of speech is sent to the client
+	#
+	#.................................................................................
+
+	print RFH join (' ', @res), "\n";
+	print LFH join (' ', @res), "\n";
+	print $client join (' ', @res), "\n";
+		foreach $val (@res)
 		{
-			print LFH "\n$val : stopword\n";
-			print RFH "\n$val : stopword\n";
-			print $client "\n$val : stopword\n";
-		}
-		else
-		{
-			if ($val =~ /#/) 
+			chomp($val);
+			print LFH "\nWord after disambiguation => $val";
+			if($val =~ /\#o/ )
+			{
+				print LFH "\n$val : stopword\n";
+				print RFH "\n$val : stopword\n";
+				print $client "\n$val : stopword\n";
+			}
+			elsif($val =~ /\#ND/) 
+			{
+				print LFH "\n$val : not in WordNet\n";
+				print RFH "\n$val : not in WordNet\n";
+				print $client "\n$val : not in WordNet\n";
+			}
+			elsif($val =~ /\#NR/)
+			{
+				print LFH "\n$val: No relatedness found with the surrounding words\n";
+				print RFH "\n$val: No relatedness found with the surrounding words\n";
+				print $client "\n$val: No relatedness found with the surrounding words\n";
+
+			}
+			elsif($val =~ /\#IT/)
+			{
+				print LFH "\n$val: Invalid Tag\n";
+				print RFH "\n$val: Invalid Tag\n";
+				print $client "\n$val: Invalid Tag\n";
+
+			}
+			elsif($val =~ /\#NT/)
+			{
+				print LFH "\n$val: No Tag\n";
+				print RFH "\n$val: No Tag\n";
+				print $client "\n$val: No Tag\n";
+			}
+
+			elsif($val =~ /\#CL/)
+			{
+				print LFH "\n$val: Closed Class Word\n";
+				print RFH "\n$val: Closed Class Word\n";
+				print $client "\n$val: Closed Class Word\n";
+			}
+			elsif($val =~ /\#MW/)
+			{
+				print LFH "\n$val: Missing Word\n";
+				print RFH "\n$val: Missing Word\n";
+				print $client "\n$val: Missing Word\n";
+			}
+
+
+			else
 			{
 				my ($gloss) = $qd->querySense ($val, "glos");
 				print LFH "\n$val : $gloss\n";
 				print RFH "\n$val : $gloss\n";
 				print $client "\n$val : $gloss\n";
 			}
-			else
-			{
-				my ($gloss) = $qd->querySense ($val, "glos");
-				if ($gloss) 
-				{
-					print LFH "\n$val: No relatedness found with the surrounding words\n";
-					print RFH "\n$val: No relatedness found with the surrounding words\n";
-					print $client "\n$val: No relatedness found with the surrounding words\n";
 
-				}
-				else 
-				{
-					print LFH "\n$val : not in WordNet\n";
-					print RFH "\n$val : not in WordNet\n";
-					print $client "\n$val : not in WordNet\n";
-				}
-			}
 		}
-  	}
-	close RFH;
-
-	if ($options{trace}) {
-			open TFH, '>', $tracefilename or print "Cannot open $tracefilename for writing: $!";
-			print TFH join (' ', @res), "\n";
-			my $tstr = $obj->getTrace();
-			print TFH "$tstr \n";
-			print LFH "$tstr \n";
-			close TFH;
-	}
-
 	
-	$status=system("tar -cvf $usr_dir.tar $usr_dir >& tar_log");
-	$status == 0 ? print LFH "\nThe tar file of results successfully created.":print LFH "\nError while creating the tar file of results."; 
 
-	$status=system("gzip $usr_dir.tar");
-	$status==0 ? print LFH "\nThe zip tar file of results successfully created.":print LFH "Error while zipping the tar file of results.";
+		if ($options{trace}) {
+				open TFH, '>', $tracefilename or print "Cannot open $tracefilename for writing: $!";
+				print TFH join (' ', @res), "\n";
+				my $tstr = $obj->getTrace();
+				print TFH "$tstr \n";
+				print LFH "$tstr \n";
+				close TFH;
+		}
+
+   }
+   	close RFH;
+		$status=system("tar -cvf $usr_dir.tar $usr_dir >& tar_log");
+		$status == 0 ? print LFH "\nThe tar file of results successfully created.":print LFH "\nError while creating the tar file of results."; 
+
+		$status=system("gzip $usr_dir.tar");
+		$status==0 ? print LFH "\nThe zip tar file of results successfully created.":print LFH "Error while zipping the tar file of results.";
 
 
-	$status=system("mv $usr_dir.tar.gz $doc_base/allwords/user_data/");
-	$status == 0 ? print LFH "The tar file successfully copied to $doc_base" :print LFH "Error while copying the tar file.";
+		$status=system("mv $usr_dir.tar.gz $doc_base/allwords/user_data/");
+		$status == 0 ? print LFH "The tar file successfully copied to $doc_base" :print LFH "Error while copying the tar file.";
 
-	$status=system("mv $usr_dir $doc_base/allwords/user_data/");
-	if($status != 0)
-	{
-		print LFH "Can not create user directory in /htdocs.";
+		$status=system("mv $usr_dir $doc_base/allwords/user_data/");
+		if($status != 0)
+		{
+			print LFH "Can not create user directory in /htdocs.";
+		}
+		close($client);	
 	}
-}
-	close($client);	
 }
 
 =head1 NAME
@@ -318,7 +386,7 @@ to htdocs/allwords/user_data directory.
  tpederse at d.umn.edu
 
 This document last modified by : 
-$Id: allwords_server.pl,v 1.7 2008/04/10 04:10:30 tpederse Exp $ 
+$Id: allwords_server.pl,v 1.16 2008/05/29 15:09:23 kvarada Exp $ 
 
 =head1 SEE ALSO
 

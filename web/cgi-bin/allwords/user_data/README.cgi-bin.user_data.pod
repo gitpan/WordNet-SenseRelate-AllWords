@@ -1,8 +1,7 @@
-#!/usr/local/bin/perl
-
 =head1 NAME
 
-README.user_data - [Web] Explanation of user_data directory in Web interfact
+README.cgi-bin.user_data - [Web] Explanation of user_data directory in 
+cgi-bin of Web interface
 
 =head1 DESCRIPTION
 
@@ -16,6 +15,7 @@ If an error occurs and processing is interrupted then the user directory
 remains here.
 
 So ideally this directory should act only as a temporary residence for these 
-user directories and should contain only this README.user_data.pod file.
+user directories and should contain only this 
+README.cgi-bin.user_data.pod file.
 
-Last modified by : '$Id: README.user_data.pod,v 1.2 2008/04/10 04:12:02 tpederse Exp $'
+Last modified by : '$Id: README.cgi-bin.user_data.pod,v 1.2 2008/05/24 12:54:18 tpederse Exp $'

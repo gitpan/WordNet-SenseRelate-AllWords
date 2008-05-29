@@ -2,6 +2,27 @@ NAME
     CHANGES - Revision history for WordNet::SenseRelate::AllWords
 
 DESCRIPTION
+    0.10
+        Date : May 29, 2008
+
+        *   Added proper error messages for the words which are ignored
+            during disambiguation. A suffix is attached to the word in order
+            to indicate why it is ignored for disambiguation. For example,
+            the word 'the' is not defined in WordNet and hence is ignored.
+            We attach the#ND to indicate that this word is not defined in
+            WordNet
+
+        *   Added context file and config file option to the Web interface
+
+        *   Removed --compounds option from wsd.pl as we decided to use
+            centralized compoundify module WordNet::Tools
+
+        *   Added compoundify in wsd.pl. This is done using the centralized
+            WordNet::Tools module
+
+        *   Removed WordNet::SenseRelate dependency of the Web interface.
+            Now compoundifying is done using WordNet::Tools
+
     0.09
         Date : April 10, 2008 (all changes by TDP)
 
@@ -131,8 +152,8 @@ AUTHORS
      Ted Pedersen, University of Minnesota, Duluth
      tpederse at d.umn.edu
 
-    This document last modified by : $Id: CHANGES.pod,v 1.6 2008/04/10
-    00:29:03 tpederse Exp $
+    This document last modified by : $Id: CHANGES.pod,v 1.8 2008/05/29
+    16:58:11 kvarada Exp $
 
 SEE ALSO
 COPYRIGHT AND LICENSE

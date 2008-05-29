@@ -12,8 +12,8 @@ sense inventory.
 
 =head1 SYNOPSIS
 
-    use WordNet::SenseRelate::AllWords;
     use WordNet::QueryData;
+    use WordNet::SenseRelate::AllWords;
 
     my $qd = WordNet::QueryData::AllWords->new;
     
@@ -259,7 +259,7 @@ word sense in a synset (synonym set) to which the original word belongs.
 =head3 Usage
 
 wsd.pl --context FILE --format FORMAT [--scheme SCHEME] [--type MEASURE]
-[--config FILE] [--compounds FILE] [--stoplist FILE] [--window INT]
+[--config FILE] [--stoplist FILE] [--window INT]
 [--contextScore NUM] [--pairScore NUM] [--outfile FILE] [--trace INT]
 [--silent] | --help | --version
 
@@ -270,37 +270,47 @@ by wsd.pl.  The three formats are:
 
 =item raw
 
-Raw text that is not part of speech tagged and needs undergo sentence
-boundary detection.  Example:
+Raw text that is not part of speech tagged. This text should be 
+formatted so that there is one sentence per line, one line per 
+sentence. For example:
 
-   Red cars are faster than white cars.  However, white cars
-   are less expensive.
 
-=item parsed
+   Red cars are faster than white cars.  
+   However, white cars are less expensive.
 
-Parsed text is untagged text that has had all unwanted punctuation removed
-and has exactly one sentence per line.  Example:
-
- Red cars are faster than white cars
- However white cars are less expensive
+Punctuation will be ignored, and compounds known to WordNet will be 
+identified automatically (e.g., 'winston churchill' will be recognized 
+as a compound and converted to winston_churchill).
 
 =item tagged
 
-Tagged text is part of speech tagged text that has no unwanted punctuation
-and has exactly one sentence per line.  Example:
+Tagged text has been Part of Speech tagged (using the Penn TreeBank
+tag set). This text should be formatted so that there is one sentence
+per line, one line per sentence. For example:
 
- Red/JJ cars/NNS are/VBP faster/RBR than/IN white/JJ cars/NNS
- However/RB white/JJ cars/NNS are/VBP less/RBR expensive/JJ 
+ Red/JJ cars/NNS are/VBP faster/RBR than/IN white/JJ cars/NNS ./.
+ However/RB white/JJ cars/NNS are/VBP less/RBR expensive/JJ ./.
+
+Words that are not tagged will be ignored even if they are known to 
+WordNet. Punctuation is ignored. Compounds will not be automatically
+identified, they must be specified by the user (e.g., 
+winston_churchill/NNP, red_tape/NNS). 
 
 =item wntagged
 
-Similar to tagged, except that the input should only contain words known to
-WordNet, and each word should have a letter indicating the part of speech
-('n', 'v', 'a', or 'r' for nouns, verbs, adjectives, and adverbs).  For
+Identical to tagged text, except that the part of speech tags are
+from the WordNet tag set, which limits them to 'n', 'v', 'a', or 'r',
+for nouns, verbs, adjectives and adverbs. This text should be formatted 
+so that there is one sentence per line, one line per sentence. For 
 example:
 
- red#a car#n be#v faster#r white#a car#n
- white#a car#n be#v less#r expensive#a
+ red#a car#n be#v faster#r than white#a car#n .
+ however white#a car#n be#v less#r expensive#a . 
+
+Words that are not tagged will be ignored even if they are known to 
+WordNet. Punctuation is ignored. Compounds will not be automatically
+identified, they must be specified by the user (e.g., 
+winston_churchill#n, red_tape#n). 
 
 Additionally, no attempt will be made to search for other valid forms of the
 words in the input.  For example, if 'dogs#n' is in the input, the program
@@ -387,13 +397,13 @@ L<http://www.d.umn.edu/~tpederse/Pubs/jason-thesis.pdf>
 
 =head1 SEE ALSO
 
-WordNet::SenseRelate::AllWords(3) wsd.pl(1)
+L<WordNet::SenseRelate::AllWords>
 
-The main web page for SenseRelate is
+The main web page for SenseRelate is :
 
  L<http://senserelate.sourceforge.net/>
 
-There are several mailing lists for SenseRelate:
+There are several mailing lists for SenseRelate :
 
  L<http://lists.sourceforge.net/lists/listinfo/senserelate-users/>
 
@@ -411,7 +421,7 @@ There are several mailing lists for SenseRelate:
 
 Last updated by :
 
-# $Id: README.pod,v 1.6 2008/04/10 00:29:03 tpederse Exp $
+# $Id: README.pod,v 1.7 2008/05/29 20:38:03 tpederse Exp $
 
 =head1 COPYRIGHT
 

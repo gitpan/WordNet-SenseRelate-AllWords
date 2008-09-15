@@ -2,6 +2,25 @@ NAME
     CHANGES - Revision history for WordNet::SenseRelate::AllWords
 
 DESCRIPTION
+    0.11
+        Date : June 17, 2008
+
+        *   Removed compounding logic from AllWords.pm. Compounding is now
+            done using WordNet::Tools compoundify. The clients, wsd.pl and
+            allwords_server.pl don't call compoundify any more. They creat
+            WordNet::Tools object and pass it as a parameter while creating
+            AllWords object.
+
+        *   Moved sentence splitter from wsd.pl to a util program,
+            sentence_split.pl. All input formats will now assume that input
+            is one sentence per line, one line per sentence.
+
+        *   Removed parsed format test case from t/wsd.t
+
+        *   Context was considered as a single line if more than one line
+            was entered in the textarea on the web interface. Now the input
+            is considered as one sentence per line, one line per sentence.
+
     0.10
         Date : May 29, 2008
 
@@ -152,8 +171,8 @@ AUTHORS
      Ted Pedersen, University of Minnesota, Duluth
      tpederse at d.umn.edu
 
-    This document last modified by : $Id: CHANGES.pod,v 1.8 2008/05/29
-    16:58:11 kvarada Exp $
+    This document last modified by : $Id: CHANGES.pod,v 1.9 2008/06/17
+    16:48:51 kvarada Exp $
 
 SEE ALSO
 COPYRIGHT AND LICENSE

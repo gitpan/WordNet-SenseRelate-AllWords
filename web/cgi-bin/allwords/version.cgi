@@ -103,11 +103,11 @@ After receiving results from the server, they are displayed to the user.
  tpederse at d.umn.edu
 
 This document last modified by : 
-$Id: version.cgi,v 1.4 2008/04/10 04:10:30 tpederse Exp $ 
+$Id: version.cgi,v 1.5 2008/05/30 00:44:40 tpederse Exp $ 
 
 =head1 SEE ALSO
 
-allwords_server.pl, README.web.pod
+ L<allwords_server.pl> L<README.web.pod>
 
 =head1 COPYRIGHT AND LICENSE
 

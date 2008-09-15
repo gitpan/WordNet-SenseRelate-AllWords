@@ -11,10 +11,13 @@ OVERVIEW
 SYNOPSIS
         use WordNet::QueryData;
         use WordNet::SenseRelate::AllWords;
+        use WordNet::Tools; 
 
         my $qd = WordNet::QueryData::AllWords->new;
+        my $wntools = WordNet::Tools->new;
     
         my %options = (wordnet => $qd,
+                       wntools => $wntools,
                        measure => 'WordNet::Similarity::lesk'
                        );
 
@@ -299,8 +302,11 @@ DESCRIPTION
    Example
       use WordNet::SenseRelate::AllWords;
       use WordNet::QueryData;
+      use WordNet::Tools;   
       my $qd = WordNet::QueryData->new;
+      my $wntools = WordNet::Tools->new;
       my $wsd = WordNet::SenseRelate::AllWords->new (wordnet => $qd,
+                                           wntools => $wntools,
                                            measure => 'WordNet::Similarity::lesk');
       my @words = qw/this is a test/;
       my @results = $wsd->disambiguate (context => [@words]);
@@ -357,7 +363,7 @@ AUTHORS
 
     Last updated by :
 
-    # $Id: README,v 1.16 2008/05/29 20:54:29 tpederse Exp $
+    # $Id: README,v 1.18 2008/09/14 23:25:15 kvarada Exp $
 
 COPYRIGHT
     Copyright (C) 2004-2008 by Ted Pedersen, Varada Kolhatkar, Jason

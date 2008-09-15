@@ -53,6 +53,7 @@ ok (-e $default_stoplist_raw_txt);
 # Check for invalid tag
 
 $obj = WordNet::SenseRelate::AllWords->new (wordnet => $qd,
+				     wntools => $wntools,	
 				     measure => 'WordNet::Similarity::lesk',
 				     pairScore => 1,
 				     contextScore => 1);
@@ -73,6 +74,7 @@ undef $obj;
 
 # Check if wonderful#a is not considered as a stopword if 'a' is contained in the stoplist
 $obj = WordNet::SenseRelate::AllWords->new (wordnet => $qd,
+					    wntools => $wntools,
 				  	    measure => 'WordNet::Similarity::lesk',
 					    stoplist => $default_stoplist_raw_txt,
 					    pairScore => 0.0,
@@ -101,6 +103,7 @@ undef $obj;
 @expected = qw/The#NT king#n#9 and#NT queen#n#7 went#NT on#NT a#NT trip#n#1 to#NT visit#v#1 their#NT subjects#n#NR/;
 
 $obj = WordNet::SenseRelate::AllWords->new (wordnet => $qd,
+					    wntools => $wntools,
 				  	    measure => 'WordNet::Similarity::lesk',
 	   				    pairScore => 0.0,
 					    contextScore => 0.0,

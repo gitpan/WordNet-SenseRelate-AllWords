@@ -1,6 +1,6 @@
 =head1 NAME
 
-TODO things to do for WordNet::SenseRelate::AllWords 
+TODO - Todo list for WordNet::SenseRelate::AllWords 
 
 =head1 SYNOPSIS
 
@@ -9,7 +9,7 @@ driver, and web interface.
 
 =head1 DESCRIPTION
 
-=head2 For version 0.11
+=head2 For version 0.12
 
 =over
 
@@ -27,11 +27,6 @@ Had a number of reported test failures in 0.08 due to WordNet version
 issues. Need to add version checks to test cases to avoid this. These 
 tests should use WordNet::Tools, not the deprecated version() method in 
 QueryData. 
-
-=item  
-
-Move sentence splitter from wsd.pl to util program. All input formats 
-will assume that input is one sentence per line, one line per sentence. 
 
 =item  
 
@@ -87,7 +82,7 @@ testing be confined to one file per module or program as it is now.
  tpederse at d.umn.edu
 
 This document last modified by : 
-$Id: TODO.pod,v 1.5 2008/05/29 16:48:55 kvarada Exp $ 
+$Id: TODO.pod,v 1.7 2008/06/17 16:51:15 kvarada Exp $ 
 
 =head1 SEE ALSO
 

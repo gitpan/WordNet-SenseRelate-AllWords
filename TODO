@@ -1,12 +1,12 @@
 NAME
-    TODO things to do for WordNet::SenseRelate::AllWords
+    TODO - Todo list for WordNet::SenseRelate::AllWords
 
 SYNOPSIS
     Plans for future versions of AllWords, including AllWords.pm, wsd.pl
     driver, and web interface.
 
 DESCRIPTION
-  For version 0.11
+  For version 0.12
     *   Store error code and error message in AllWords object which will be
         useful in AllWords clients, that is allwords_server.pl and wsd.pl.
         We can check for those errors and take appropriate actions in the
@@ -16,10 +16,6 @@ DESCRIPTION
         version issues. Need to add version checks to test cases to avoid
         this. These tests should use WordNet::Tools, not the deprecated
         version() method in QueryData.
-
-    *   Move sentence splitter from wsd.pl to util program. All input
-        formats will assume that input is one sentence per line, one line
-        per sentence.
 
     *   Expanding set of POS tags that can be used, either by modifying
         AllWords.pm or allowing user to submit a config file of some kind
@@ -59,7 +55,7 @@ AUTHORS
      Ted Pedersen, University of Minnesota, Duluth
      tpederse at d.umn.edu
 
-    This document last modified by : $Id: TODO.pod,v 1.5 2008/05/29 16:48:55
+    This document last modified by : $Id: TODO.pod,v 1.7 2008/06/17 16:51:15
     kvarada Exp $
 
 SEE ALSO

@@ -1,6 +1,6 @@
 package WordNet::SenseRelate::AllWords;
 
-# $Id: AllWords.pm,v 1.21 2008/05/29 13:25:15 kvarada Exp $
+# $Id: AllWords.pm,v 1.25 2008/06/17 16:21:08 kvarada Exp $
 
 =head1 NAME
 
@@ -10,13 +10,17 @@ WordNet::SenseRelate::AllWords - Disambiguate All Words in a Text based on seman
 
   use WordNet::SenseRelate::AllWords;
   use WordNet::QueryData;
+  use WordNet::Tools;
   my $qd = WordNet::QueryData->new;
   defined $qd or die "Construction of WordNet::QueryData failed";
+  my $wntools = WordNet::Tools->new($qd);
+  defined $wntools or die "\nCouldn't construct WordNet::Tools object"; 
 
   my $wsd = WordNet::SenseRelate::AllWords->new (wordnet => $qd,
+						 wntools => $wntools,
                                                  measure => 'WordNet::Similarity::lesk');
 
-  my @context = qw/the bridge is held up by red_tape/;
+  my @context = qw/the bridge is held up by red tape/;
   my @results = $wsd->disambiguate (window => 3,
 				    context => [@context]);
   print "@results\n";
@@ -56,10 +60,10 @@ use Carp;
 
 our @ISA = ();
 
-our $VERSION = '0.10';
+our $VERSION = '0.11';
 
 my %wordnet;
-my %compounds;
+my %wntools;
 my %simMeasure; # the similarity/relatedness measure
 my %stoplist;
 my %pairScore;
@@ -81,9 +85,6 @@ use constant TR_ALLSCORES  =>  4;  # show all non-zero scores
 use constant TR_PAIRWISE   =>  8;  # show all the non-zero similarity scores
 use constant TR_ZERO       => 16;  
 use constant TR_MEASURE    => 32;  # show similarity measure traces
-
-# in WordNet 2.0, the longest compounds are 8 words long
-use constant MAX_COMPOUND_LENGTH => 8;
 
 # Penn tagset
 my %wnTag = (
@@ -144,10 +145,10 @@ return a reference to the constructed object.
 Parameters:
 
   wordnet      => REFERENCE : WordNet::QueryData object
+  wntools	   => REFERENCE : WordNet::Tools object
   measure      => STRING    : name of a WordNet::Similarity measure
   config       => FILENAME  : config file for above measure
   outfile      => FILENAME  : name of a file for output (optional)
-  compfile     => FILENAME  : file containing compound words
   stoplist     => FILENAME  : file containing list of stop words
   pairScore    => INTEGER   : minimum pairwise score (default: 0)
   contextScore => INTEGER   : minimum overall score (default: 0)
@@ -161,6 +162,7 @@ Returns:
 Example:
 
   WordNet::SenseRelate::AllWords->new (wordnet => $query_data_obj,
+				       wntools => $wordnet_tools_obj,
                                        measure => 'WordNet::Similarity::lesk',
                                        trace   => 1);
 
@@ -193,9 +195,9 @@ sub new
     $class = ref $class || $class;
 
     my $qd;
+    my $wnt;
     my $measure;
     my $measure_config;
-    my $compfile;
     my $stoplist;
     my $pairScore = 0;
     my $contextScore = 0;
@@ -209,14 +211,15 @@ sub new
 	if ($key eq 'wordnet') {
 	    $qd = $val; 
 	}
+	elsif ($key eq 'wntools')
+		{
+		$wnt = $val;
+		}
 	elsif ($key eq 'measure') {
 	    $measure = $val;
 	}
 	elsif ($key eq 'config') {
 	    $measure_config = $val;
-	}
-	elsif ($key eq 'compfile') {
-	    $compfile = $val;
 	}
 	elsif ($key eq 'stoplist') {
 	    $stoplist = $val;
@@ -250,6 +253,10 @@ sub new
 
     unless (ref $qd) {
 	croak "No WordNet::QueryData object supplied";
+    }
+
+	unless (ref $wnt) {
+	croak "No WordNet::Tools object supplied";
     }
 
     unless ($measure) {
@@ -297,7 +304,9 @@ sub new
     # save ref to WordNet::QueryData obj
     $wordnet{$self} = $qd;
 
-    $self->_loadCompfile ($compfile) if defined $compfile;
+    # save ref to WordNet::Tools obj
+    $wntools{$self} = $wnt;
+
     $self->_loadStoplist ($stoplist) if defined $stoplist;
 
     # store threshold values
@@ -330,8 +339,8 @@ sub DESTROY
 {
     my $self = shift;
     delete $wordnet{$self};
+    delete $wntools{$self};
     delete $simMeasure{$self};
-    delete $compounds{$self};
     delete $stoplist{$self};
     delete $pairScore{$self};
     delete $contextScore{$self};
@@ -380,7 +389,6 @@ Example:
   my @results =
     $wsd->disambiguate (window => 3, tagged => 0, context => [@words]);
 
-
 Rules for attaching suffixes:
 
 Suffixes are attached to the words in the context in order to ignore those while disambiguation. 
@@ -388,23 +396,29 @@ Note that after converting the tags to WordNet tags, tagged text is treated same
 
 Below is the ordered enumeration of the words which are ignored for disambiguation and the suffixes attached to those words. 
 
-Note that we check for such words in the order below. 
+Note that we check for such words in the order below:
 
-1 stopwords => #o 
+ 1 stopwords => #o 
 
-2 Only for tagged text
+ 2 Only for tagged text :
+
     i)   Closed Class words => #CL
+
     ii)  Invalid Tag => #IT
+
     iii) Missing Word => #MW
 
-3 For tagged and wntagged text
+ 3 For tagged and wntagged text:
+
     i)	 No Tag => #NT
+
     ii)  Missing Word => #MW
+
     iii) Invalid Tag => #IT
 
-4 Not in WordNet => #ND
+ 4 Not in WordNet => #ND
 
-5 No Relatedness found with the surrounding words => #NR
+ 5 No Relatedness found with the surrounding words => #NR
 
 =cut 
 
@@ -471,6 +485,7 @@ sub disambiguate
 	# 2) checks if the word is a stopword. If it is a stopword, attaches \#o 
 	# 3) converts position tags if we have tagged text
     my @newcontext = $self->_initializeContext ($tagged, @context);
+		
 	if($tagged || $wnformat{$self}){
 		foreach my $word (@newcontext) {
 			if ($word !~ /\#/) {
@@ -510,8 +525,8 @@ sub disambiguate
 	open OFH, '>>', $outfile{$self} or croak "Cannot open outfile: $!";
 	print OFH "\n\n";
 	print OFH "Results after disambiguation...\n";
-	for my $i (0..$#context) {
-	    my $orig_word = $context[$i];
+	for my $i (0..$#newcontext) {
+	    my $orig_word = $newcontext[$i];
 	    my $new_word = $rval[$i];
 	    my ($w, $p, $s) = $new_word =~ /([^\#]+)(?:\#([^\#]+)(?:\#([^\#]+))?)?/;
 	    printf OFH "%25s", $orig_word;
@@ -531,11 +546,13 @@ sub _initializeContext
 {
     my $self = shift;
     my $tagged = shift;
+    my $wn = $wordnet{$self};
+    my $wnt = $wntools{$self};
     my @context = @_;
 
-    # compoundify the words (if we loaded a compounds file)
-    if ($self->compounds ('#do#')) {
-	@context = $self->_compoundify ($tagged, @context);
+    # compoundify the words (if the text is raw)
+    if (defined $wnt and !$tagged and !$wnformat{$self}) {
+		@context = split(/ +/,$wnt->compoundify("@context"));
     }
 
     my @newcontext;
@@ -1124,18 +1141,6 @@ sub _normalDisambig
     return $result;
 }
 
-sub compounds : lvalue
-{
-    my $self = shift;
-    my $comp = shift;
-    if (defined $comp) {
-	return $compounds{$self}->{$comp};
-    }
-    else {
-	return $compounds{$self};
-    }
-}
-
 sub isStop
 {
     my $self = shift;
@@ -1366,72 +1371,6 @@ sub _loadStoplist
     close SFH;
 }
 
-sub _loadCompfile
-{
-    my $self = shift;
-    my $compfile = shift;
-    $compounds{$self} = {};
-
-    open CFH, '<', $compfile or die "Cannot open '$compfile': $!";
-    while (<CFH>) {
-	chomp;
-	next unless defined;
-	$self->compounds->{$_} = 1;
-    }
-    close CFH;
-
-    # a special sentinal.  Later, we can check if this exists to see
-    # if we should do compoundification
-    $self->compounds->{'#do#'} = 1;
-}
-
-sub _compoundify
-{
-    my $self = shift;
-    my $tagged = shift; # tags would be in Penn Treebank form
-    my @wordpos = @_;
-    my @words;
-
-    foreach my $wpos (@wordpos) {
-	my $index = index $wpos, '/';
-	if ($index < 0) {
-	    push @words, lc $wpos;
-	}
-	else {
-	    push @words, lc substr $wpos, 0, $index;
-	}
-    }
-
-    my @rvalues;
-
-    my $i = 0;
-    my $j = $i + MAX_COMPOUND_LENGTH;
-    while ($i < $#words) {
-	my $candidate = join '_', @words[$i..$j];
-	if (defined $self->compounds ($candidate)) {
-	    # do something with $candidate
-	    push @rvalues, $candidate;
-	    $i = $j + 1;
-	    $j = $#words;
-	}
-	elsif (--$j > $i) {
-	    # nothing to do
-	}
-	else {
-	    push @rvalues, $wordpos[$i];
-	    $i++;
-	    $j = $#words;
-	}
-    }
-
-    my $lastword = $words[$#words];
-    unless ($lastword =~ /\Q$rvalues[$#rvalues]\E/) {
-	push @rvalues, $wordpos[$#wordpos];
-    }
-
-    return @rvalues;
-}
-
 sub getPos
 {
     my $string = shift;
@@ -1451,30 +1390,28 @@ __END__
 
 =head1 SEE ALSO
 
-WordNet::Similarity::AllWords
+ L<WordNet::Similarity::AllWords>
 
-The main web page for SenseRelate is
+The main web page for SenseRelate is :
 
-L<http://senserelate.sourceforge.net/>
+ L<http://senserelate.sourceforge.net/>
 
 There are several mailing lists for SenseRelate:
 
-L<http://lists.sourceforge.net/lists/listinfo/senserelate-users/>
+ L<http://lists.sourceforge.net/lists/listinfo/senserelate-users/>
 
-L<http://lists.sourceforge.net/lists/listinfo/senserelate-news/>
+ L<http://lists.sourceforge.net/lists/listinfo/senserelate-news/>
 
-L<http://lists.sourceforge.net/lists/listinfo/senserelate-developers/>
+ L<http://lists.sourceforge.net/lists/listinfo/senserelate-developers/>
 
 =head1 REFERENCES
 
 =over
 
-=item [1]
-
-Ted Pedersen, Satanjeev Banerjee, and Siddharth Patwardhan (2005)
-Maximizing Semantic Relatedness to Perform Word Sense Disambiguation,
-University of Minnesota Supercomputing Institute Research Report UMSI
-2005/25, March.
+=item [1] Ted Pedersen, Satanjeev Banerjee, and Siddharth Patwardhan 
+(2005) Maximizing Semantic Relatedness to Perform Word Sense 
+Disambiguation, University of Minnesota Supercomputing Institute 
+Research Report UMSI 2005/25, March.
 L<http://www.msi.umn.edu/general/Reports/rptfiles/2005-25.pdf>
 
 =back
@@ -1487,7 +1424,7 @@ Ted Pedersen, E<lt>tpederse at d.umn.eduE<gt>
 
 =head1 COPYRIGHT AND LICENSE
 
-Copyright (C) 2004-2005 by Jason Michelizzi and Ted Pedersen
+Copyright (C) 2004-2008 by Jason Michelizzi and Ted Pedersen
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by

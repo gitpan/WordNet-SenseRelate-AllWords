@@ -12,26 +12,26 @@ sense inventory.
 
 =head1 SYNOPSIS
 
-    use WordNet::QueryData;
     use WordNet::SenseRelate::AllWords;
+    use WordNet::QueryData;
+    use WordNet::Tools;
 
-    my $qd = WordNet::QueryData::AllWords->new;
+    my $qd = WordNet::QueryData->new;
+    my $wntools = WordNet::Tools->new($qd);
     
     my %options = (wordnet => $qd,
+		   wntools => $wntools,
                    measure => 'WordNet::Similarity::lesk'
                    );
 
-    my $wsd = WordNet::SenseRelate::AllWords->new (%options);
-
-    my @words = qw/when in the course of human events/;
-
-    my @res = $wsd->disambiguate (window => 2, 
-                                  tagged => 0, 
-                                  scheme => 'normal',
-                                  context => [@words],
-                                  );
+   my $obj = WordNet::SenseRelate::AllWords->new(%options);
+   my @context = qw/when in the course of human events/;
+   my @res = $obj->disambiguate (window => 3,
+				  scheme => 'normal',
+				  tagged => 0,
+				  context => [@context]);
                                     
-    print join (' ', @res), "\n";
+   print join (' ', @res), "\n";
    
 =head1 CONTENTS
 
@@ -347,15 +347,26 @@ programs to perform word sense disambiguation.
 
 =head3 Example
 
-  use WordNet::SenseRelate::AllWords;
-  use WordNet::QueryData;
-  my $qd = WordNet::QueryData->new;
-  my $wsd = WordNet::SenseRelate::AllWords->new (wordnet => $qd,
-                                       measure => 'WordNet::Similarity::lesk');
-  my @words = qw/this is a test/;
-  my @results = $wsd->disambiguate (context => [@words]);
-  print join (' ', @results), "\n";
+    use WordNet::SenseRelate::AllWords;
+    use WordNet::QueryData;
+    use WordNet::Tools;
 
+    my $qd = WordNet::QueryData->new;
+    my $wntools = WordNet::Tools->new($qd);
+    
+    my %options = (wordnet => $qd,
+		   wntools => $wntools,
+                   measure => 'WordNet::Similarity::lesk'
+                   );
+
+   my $obj = WordNet::SenseRelate::AllWords->new(%options);
+   my @context = qw/when in the course of human events/;
+   my @res = $obj->disambiguate (window => 3,
+				  scheme => 'normal',
+				  tagged => 0,
+				  context => [@context]);
+                                    
+   print join (' ', @res), "\n";
 
 The context parameter to disambiguate() specifies a set of words to
 disambiguate.  The function treats the context as one sentence.  To
@@ -421,7 +432,7 @@ There are several mailing lists for SenseRelate :
 
 Last updated by :
 
-# $Id: README.pod,v 1.7 2008/05/29 20:38:03 tpederse Exp $
+# $Id: README.pod,v 1.10 2008/09/15 21:30:17 kvarada Exp $
 
 =head1 COPYRIGHT
 

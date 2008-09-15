@@ -1,5 +1,5 @@
 
-# $Id: WordNet-SenseRelate-AllWords.t,v 1.18 2008/05/28 17:08:36 kvarada Exp $
+# $Id: WordNet-SenseRelate-AllWords.t,v 1.19 2008/09/09 20:17:42 kvarada Exp $
 
 # DO NOT ADD NEW TESTS TO THIS .t FILE unless you test with version
 # 2.0 and 2.1. If you have new tests, please create a new .t file
@@ -71,6 +71,7 @@ diag ("WordNet path : $wnpath");
 my @context = ('my/PRP$', 'cat/NN', 'is/VBZ', 'a/DT', 'wise/JJ', 'cat/NN');
 
 $obj = WordNet::SenseRelate::AllWords->new (wordnet => $qd,
+				     wntools => $wntools,
 				     measure => 'WordNet::Similarity::lesk',
 				     pairScore => 1,
 				     contextScore => 1);
@@ -104,6 +105,7 @@ undef $obj;
 # lesk...
 
 $obj = WordNet::SenseRelate::AllWords->new (wordnet => $qd,
+				     wntools => $wntools,
 				     measure => 'WordNet::Similarity::wup',
 				     pairScore => 0,
 				     contextScore => 0);
@@ -111,6 +113,7 @@ ok ($obj);
 
 # try it with tracing on
 $obj = WordNet::SenseRelate::AllWords->new (wordnet => $qd,
+				  wntools => $wntools,
 				  measure => 'WordNet::Similarity::lesk',
 				  trace => 1,
 				  );
@@ -140,6 +143,7 @@ for my $i (0..$#expected) {
 @expected = qw/physics#n#1 not#r#1 medicine#n#2/;
 
 $obj = $obj->new (wordnet => $qd,
+		  wntools => $wntools,
                   measure => 'WordNet::Similarity::lesk',
                   wnformat => 1);
 
@@ -173,6 +177,7 @@ else {
 	}
 
 $obj = $obj->new (wordnet => $qd,
+		  wntools => $wntools,	
 		  measure => 'WordNet::Similarity::lesk');
 
 @res = $obj->disambiguate (window => 4, tagged => 0,
@@ -191,6 +196,7 @@ for my $i (0..$#expected) {
 @expected = qw/winter#n#1 spring#n#1 summer#n#1 fall#n#1/;
 
 $obj = $obj->new (wordnet => $qd,
+		  wntools => $wntools,
 		  measure => 'WordNet::Similarity::lesk');
 
 @res = $obj->disambiguate (context => [@context]);

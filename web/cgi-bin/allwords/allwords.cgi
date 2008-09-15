@@ -7,7 +7,7 @@ $CGI::DISABLE_UPLOADS = 0;
 my $host='127.0.0.1';
 my $port=7070;
 
-my $OK_CHARS='-a-zA-Z0-9_\' ';
+my $OK_CHARS='-a-zA-Z0-9_\'\n ';
 my ($kidpid, $handle, $line);
 my %options;
 my $status;
@@ -49,6 +49,7 @@ if($status!=0)
 
 
 my $text = $cgi->param('text1') if defined $cgi->param('text1');
+
 $contextfile=$cgi->param('contextfile') if defined $cgi->param('contextfile');
 
 #if ($cgi->param('text1') eq "" && $cgi->param('contextfile') eq "") {
@@ -57,17 +58,6 @@ if ( (!$text)  && (!$contextfile) ) {
 	    writetoCGI("\nPlease use back link to return to original page to enter your text\n");
 		print "<p><a href=\"http://$hostname/allwords/allwords.html\">Back</a></p>";
 		die "Could not complete the request as no text was entered. \n";
-}
-
-if($contextfile){
-	$contextfilename = getFileName($contextfile);
-	$context="$usr_dir/"."$contextfilename";
-	open CONTEXT,">","$context" or writetoCGI("Error in uploading contextfile.");
-	while(read($contextfile,$buffer,1024))
-	{
-		print CONTEXT $buffer;
-	}
-	close CONTEXT;	
 }
 
 my $windowSize = $cgi->param('winsize') if defined $cgi->param('winsize');
@@ -95,6 +85,47 @@ if ($cgi->param('measure') =~ /lesk/) {
 	$options{measure}= "vector";
 }elsif($cgi->param('measure') =~ /vector-pairs/) {
 	$options{measure}= "vector-pairs";
+}
+
+# Text was considered as a single line before. 
+# Allowed \n character in $OK_CHARS to fix that.
+# Removing unwanted characters from the raw text. 
+# If the text is tagged or wntagged, it is the user's responsibility 
+# to clean text and remove unwanted characters
+
+if($text){
+	if ($format ne 'tagged' && $format ne 'wntagged') {
+		$text =~ s/[^$OK_CHARS]/ /g;
+		$text =~ s/([A-Z])/\L$1/g;
+		if ($text !~ /[a-zA-Z0-9]/) {
+			   writetoCGI("\nPlease use back link to return to original page to enter your text\n");
+			   print "<p><a href=\"http://$hostname/allwords/allwords.html\">Back</a></p>";
+			   die "\nSorry. Your text should contain atleast one alphanumeric character\n";
+		}
+	}
+	$contextfilename="default-context-file.txt";
+	$context="$usr_dir/"."$contextfilename";
+	open CONTEXT,">","$context" or writetoCGI("Error writing contextfile.");
+	print CONTEXT $text;
+	close CONTEXT;
+}
+elsif($contextfile){
+	$contextfilename = getFileName($contextfile);
+	$context="$usr_dir/"."$contextfilename";
+	open CONTEXT,">","$context" or writetoCGI("Error in uploading contextfile.");
+	while(read($contextfile,$buffer,1024)){
+		if ($format ne 'tagged' && $format ne 'wntagged') {
+			$buffer =~ s/[^$OK_CHARS]/ /g;
+			$buffer =~ s/([A-Z])/\L$1/g;
+			if ($buffer !~ /[a-zA-Z0-9]/) {
+			    writetoCGI("\nPlease use back link to return to original page to enter your text\n");
+				print "<p><a href=\"http://$hostname/allwords/allwords.html\">Back</a></p>";
+				die "\nSorry. Your text should contain atleast one alphanumeric character\n";
+			}
+		}
+		print CONTEXT $buffer;
+	}
+	close CONTEXT;	
 }
 
 $configfile=$cgi->param('configfile') if defined $cgi->param('configfile');
@@ -162,14 +193,6 @@ $options{forcepos} = $cgi->param('forcepos') if defined $cgi->param('forcepos');
 
 
 
-# Removing unwanted characters from the raw text. If the text is tagged or wntagged, 
-# 
-#
-if ($format ne 'tagged' && $format ne 'wntagged') {
-	$text =~ s/[^$OK_CHARS]/ /g;
-	#$text =~ s/[^-a-zA-Z0-9_' ]/ /g;
-	$text =~ s/([A-Z])/\L$1/g;
-}
 
 open FH, '>', $filename or die "Cannot open $filename for writing: $!";
 open IFH, '>', $inputfile or die "Cannot open $inputfile for writing: $!";
@@ -178,16 +201,8 @@ print FH "Document Base:$ENV{'DOCUMENT_ROOT'}\n";
 print FH "User Directory:$usr_dir\n";
 print IFH "User Directory:$usr_dir\n";
 
-if ($text ne "") {
-	print FH "Text to Disambiguate:$text\n";
-	print IFH "Text to Disambiguate:$text\n";
-}
-else
-{
-	print FH "Contextfile:$contextfilename\n";
-	print IFH "Contextfile:$contextfilename\n";
-}
-
+print FH "Contextfile:$contextfilename\n";
+print IFH "Contextfile:$contextfilename\n";
 
 print FH "Window size:$windowSize\n";
 print IFH "Window size:$windowSize\n";
@@ -307,11 +322,11 @@ they are displayed to the user.
  tpederse at d.umn.edu
 
 This document last modified by : 
-$Id: allwords.cgi,v 1.14 2008/05/21 20:44:53 kvarada Exp $
+$Id: allwords.cgi,v 1.17 2008/06/16 01:33:37 kvarada Exp $
 
 =head1 SEE ALSO
 
-allwords_server.pl, README.web.pod
+ L<allwords_server.pl> L<README.web.pod>
 
 =head1 COPYRIGHT AND LICENSE
 

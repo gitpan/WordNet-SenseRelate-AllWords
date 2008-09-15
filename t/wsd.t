@@ -1,4 +1,4 @@
-# $Id: wsd.t,v 1.4 2008/04/10 04:19:36 tpederse Exp $
+# $Id: wsd.t,v 1.5 2008/06/16 14:47:33 kvarada Exp $
 #
 # simple test script for wsd.pl
 
@@ -36,7 +36,7 @@ if ( !($wnHashCode eq WNver20) &&
  	plan skip_all => 'WordNet version is not 2.0 2.1 3.0 -> skip tests'; 
      }
 else {
-	plan tests => 7;
+	plan tests => 5;
      }
 
 use File::Spec;
@@ -45,45 +45,33 @@ my $tmp = File::Spec->tmpdir;
 my $wsd_pl = File::Spec->catfile ('utils', 'wsd.pl');
 ok (-e $wsd_pl);
 
-# test the parsed mode
-my $t1in = File::Spec->catfile ($tmp, "$$.1in");
-ok (open (IN, '>', $t1in));
-print IN "parking_tickets are expensive";
-close IN;
-
 my $inc = "-Iblib/lib";
-my $output = `$^X $inc $wsd_pl --context $t1in --format parsed --type WordNet::Similarity::lesk --silent 2>&1`;
-
-chomp $output;
 
 my $expected = 'parking_ticket#n#1 be#v#1 expensive#a#1';
 
-is ($output, $expected);
-
 # test the tagged mode
-my $t2in = File::Spec->catfile ($tmp, "$$.2in");
-ok (open (IN, '>', $t2in));
+my $t1in = File::Spec->catfile ($tmp, "$$.1in");
+ok (open (IN, '>', $t1in));
 print IN "parking_tickets/NNS are/VBP expensive/JJ";
 close IN;
 
-$output = `$^X $inc $wsd_pl --context $t2in --format tagged --type WordNet::Similarity::lesk --silent 2>&1`;
+$output = `$^X $inc $wsd_pl --context $t1in --format tagged --type WordNet::Similarity::lesk --silent 2>&1`;
 chomp $output;
 is ($output, $expected);
 
 # test raw mode
-my $t3in = File::Spec->catfile ($tmp, "$$.3in");
-ok (open (IN, '>', $t3in));
+my $t2in = File::Spec->catfile ($tmp, "$$.2in");
+ok (open (IN, '>', $t2in));
 
 # bad grammar, but it does test the script nicely
 print IN "parking_tickets, are expensive.";
 
 close IN;
 
-$output = `$^X $inc $wsd_pl --context $t3in --format raw --type WordNet::Similarity::lesk --silent 2>&1`;
+$output = `$^X $inc $wsd_pl --context $t2in --format raw --type WordNet::Similarity::lesk --silent 2>&1`;
 chomp $output;
 is ($output, $expected);
 
 unlink $t1in;
 unlink $t2in;
-unlink $t3in;
 

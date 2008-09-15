@@ -94,7 +94,7 @@ print LFH "\n[Server $0 accepting clients]\n";
 while ($client = $sock->accept()){	
    $client->autoflush(1);	
    print LFH "\nClient $client is accepted\n";	
-   %options= (wordnet => $qd);
+   %options= (wordnet => $qd, wntools => $wntools);
    $options{outfile} = $outfile;
    @sentences=();
    $sentence="";
@@ -135,13 +135,6 @@ while ($client = $sock->accept()){
 			$tracefilename="$usr_dir"."/trace.txt";
 			$resultfilename="$usr_dir"."/results.txt";
 			print LFH "\nTrace file name => $tracefilename";
-	    }
-		elsif ($line =~ /Text to Disambiguate:/)
-		{
-			$showversion=0;
-			$text=$tokens[1];
-			@sentences = split(/\n/,$text);
-			print LFH "\nText => $text";
 	    }
 		elsif ($line =~ /Contextfile:/)
 		{
@@ -211,9 +204,6 @@ foreach $temp (keys(%options))
 			$sentence =~ s/[^-a-zA-Z0-9_' ]/ /g;
 			$sentence =~ s/([A-Z])/\L$1/g;
  		    chomp($sentence);
-  		    print LFH "\nText before compoundifying is => $sentence\n";
-		    $sentence = $wntools->compoundify($sentence);
-	  	    print LFH "\nText after compoundifying is => $sentence\n";
 		}
 	}
    my $obj = WordNet::SenseRelate::AllWords->new(%options);
@@ -386,7 +376,7 @@ to htdocs/allwords/user_data directory.
  tpederse at d.umn.edu
 
 This document last modified by : 
-$Id: allwords_server.pl,v 1.16 2008/05/29 15:09:23 kvarada Exp $ 
+$Id: allwords_server.pl,v 1.18 2008/06/16 01:36:57 kvarada Exp $ 
 
 =head1 SEE ALSO
 

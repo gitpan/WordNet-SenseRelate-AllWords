@@ -1,6 +1,6 @@
 #!/usr/local/bin/perl
 
-# $Id: wsd.pl,v 1.17 2008/05/29 19:11:26 kvarada Exp $
+# $Id: wsd.pl,v 1.21 2008/06/16 14:26:14 kvarada Exp $
 
 use strict;
 use warnings;
@@ -13,9 +13,8 @@ use Getopt::Long;
 our $measure = 'WordNet::Similarity::lesk';
 our $mconfig;
 our $contextf;
-our $compfile;
 our $stoplist;
-our $window = 4;
+our $window = 3;
 our $contextScore = 0;
 our $pairScore = 0;
 our $silent;
@@ -26,7 +25,8 @@ our $scheme = 'normal';
 our $outfile;
 our $forcepos;
 
-our $format; # raw|tagged|parsed
+our $format; # raw|tagged|wntagged
+my $OK_CHARS='-a-zA-Z0-9_\'\n ';
 
 my $ok = GetOptions ('type|measure=s' => \$measure,
 		     'config=s' => \$mconfig,
@@ -53,7 +53,7 @@ if ($help) {
 
 if ($version) {
     print "wsd.pl - assign a sense to all words in a context\n";
-    print 'Last modified by : $Id: wsd.pl,v 1.17 2008/05/29 19:11:26 kvarada Exp $';
+    print 'Last modified by : $Id: wsd.pl,v 1.21 2008/06/16 14:26:14 kvarada Exp $';
     print "\n";
     exit;
 }
@@ -65,8 +65,9 @@ unless (defined $contextf) {
 }
 
 unless ($format
-        and (($format eq 'raw') or ($format eq 'parsed')
-	     or ($format eq 'tagged') or ($format eq 'wntagged'))) {
+        and (($format eq 'raw') or 
+	     ($format eq 'tagged') or 
+	     ($format eq 'wntagged'))) {
     print STDERR "The --format argument is required. This is the type of text to be disambiguated.\n";
     showUsage ();
     exit 1;
@@ -105,7 +106,6 @@ unless ($silent) {
 	print "    forcepos      : ", ($forcepos ? "yes" : "no"), "\n";
     }
 
-    print "    compound file : ", ($compfile ? $compfile : '(none)'), "\n";
     print "    stoplist      : ", ($stoplist ? $stoplist : '(none)') , "\n";
 }
 
@@ -114,8 +114,25 @@ print "Loading WordNet... " unless $silent;
 my $qd = WordNet::QueryData->new;
 print "done.\n" unless $silent;
 
+#...........................................................................
+#
+# Compoundifying is done using compoundify method of WordNet::Tools.
+# The reason there was a --compounds option is that previoulsy we did
+# not have a centralized compoundify module like we do now (WordNet::Tools)
+# So each program would do their own compound identification.
+# We think that this is no longer a good idea and hence we removed 
+# --compounds option.
+# WordNet::Tools object is passed while creating AllWords object. 
+# AllWords.pm calls compoundify of using WordNet::Tools object reference.
+# 
+#...........................................................................
+
+my $wntools = WordNet::Tools->new($qd);
+$wntools or die "\nCouldn't construct WordNet::Tools object"; 
+
 # options for the WordNet::SenseRelate constructor
 my %options = (wordnet => $qd,
+				wntools => $wntools,
 	       measure => $measure,
 	       );
 $options{config} = $mconfig if defined $mconfig;
@@ -129,19 +146,7 @@ $options{wnformat} = 1 if $format eq 'wntagged';
 
 my $sr = WordNet::SenseRelate::AllWords->new (%options);
 
-#...........................................................................
-#
-# Compoundifying is done using compoundify method of WordNet::Tools.
-# The reason there was a --compounds option is that previoulsy we did
-# not have a centralized compoundify module like we do now (WordNet::Tools)
-# So each program would do their own compound identification.
-# We think that this is no longer a good idea and hence we removed 
-# --compounds option.
-#
-#...........................................................................
 
-my $wntools = WordNet::Tools->new($qd);
-$wntools or warn "\nCouldn't construct WordNet::Tools object"; 
 
 open (FH, '<', $contextf) or die "Cannot open '$contextf': $!";
 
@@ -149,14 +154,24 @@ my @sentences;
 if ($format eq 'raw') {
     local $/ = undef;
     my $input = <FH>;
-    $input =~ tr/\n/ /;
 
-
-    @sentences = splitSentences ($input);
+#...........................................................................
+#
+# Removed splitSentences. We do not do any kind of sentence 
+# splitting in wsd.pl. It is required the input to already be sentence 
+# boundary processed. A small utility program utils/sentence_split.pl 
+# is provided in case needed. 
+# The text is cleaned in a way that is consistent with the Web interface
+#
+#...........................................................................
+	$input =~ s/\r+//g;	
+	@sentences = split(/\n+/,$input);
     undef $input;
     foreach my $sent (@sentences) {
 	$sent = cleanLine ($sent);
-	$sent = $wntools->compoundify($sent);
+	if ($sent !~ /[a-zA-Z0-9]/) {
+		die "\nSorry. Your context should contain atleast one alphanumeric character\n";
+	}
     }
 }
 else {
@@ -214,50 +229,10 @@ sub isTagged
 sub cleanLine
 {
     my $line = shift;
-    # remove commas, colons, semicolons
-    $line =~ s/[,:;]+/ /g;
+	$line =~ s/[^$OK_CHARS]/ /g;
+	$line =~ s/([A-Z])/\L$1/g;
+	chomp($line);
     return $line;
-}
-
-# The sentence boundary algorithm used here is based on one described
-# by C. Manning and H. Schutze. 2000. Foundations of Statistical Natural
-# Language Processing. MIT Press: 134-135.
-sub splitSentences
-{
-    my $string = shift;
-    return unless $string;
-
-    # abbreviations that (almost) never occur at the end of a sentence
-    my @known_abbr = qw/prof Prof ph d Ph D dr Dr mr Mr mrs Mrs ms Ms vs/;
-
-    # abbreviations that can occur at the end of sentence
-    my @sometimes_abbr = qw/etc jr Jr sr Sr/;
-
-
-    my $pbm = '<pbound/>'; # putative boundary marker
-
-    # put a putative sent. boundary marker after all .?!
-    $string =~ s/([.?!])/$1$pbm/g;
-
-    # move the boundary after quotation marks
-    $string =~ s/$pbm"/"$pbm/g;
-    $string =~ s/$pbm'/'$pbm/g;
-
-    # remove boundaries after certain abbreviations
-    foreach my $abbr (@known_abbr) {
-	$string =~ s/\b$abbr(\W*)$pbm/$abbr$1 /g;
-    }
-
-    foreach my $abbr (@sometimes_abbr) {
-	$string =~ s/$abbr(\W*)\Q$pbm\E\s*([a-z])/$abbr$1 $2/g;
-    }
-
-    # remove !? boundaries if not followed by uc letter
-    $string =~ s/([!?])\s*$pbm\s*([a-z])/$1 $2/g;
-
-
-    # all remaining boundaries are real boundaries
-    my @sentences = map {s/^\s+|\s+$//g; $_} split /[.?!]\Q$pbm\E/, $string;
 }
 
 sub showUsage
@@ -272,8 +247,8 @@ sub showUsage
     if ($long) {
 	print "Options:\n";
 	print "\t--context FILE       a file containing the text to be disambiguated\n";
-	print "\t--format FORMAT      type of --context ('raw', 'parsed',\n";
-        print "\t                       'tagged' or 'wntagged')\n";
+	print "\t--format FORMAT      type of --context ('raw', 'tagged',\n";
+        print "\t                       or 'wntagged')\n";
 	print "\t--scheme SCHEME      disambiguation scheme to use. ('normal', \n";
 	print "\t                       'fixed', 'sense1', or 'random')\n";
 	print "\t--type MEASURE       the relatedness measure to use\n";
@@ -302,7 +277,7 @@ __END__
 
 =head1 NAME
 
-wsd.pl - Command line driver for WordNet::SenseRelate::AllWords 
+wsd.pl - automatically assign a meaning to every word in a text
 
 =head1 SYNOPSIS
 
@@ -331,38 +306,25 @@ The input file containing the text to be disambiguated.  This
 
 =item --format=B<FORMAT>
 
-The format of the input file.  Valid values are
+The format of the input file. For all formats there must be one sentence
+per line, one line per sentence.  Valid values are:
 
 =over
 
 =item raw
 
-The input is raw text.  Sentence boundary detection will be performed, and
-all punctuation will be removed.
-
-=item parsed
-
-The input is untagged text with one sentence per line and all unwanted
-punctuation has already been removed.  Note: many WordNet terms contain
-punctuation, such as I<U.S.>, I<Alzheimer's>, I<S/N>, etc.
+The input is raw text. Compounds will be identified, punctuation is 
+ignored. 
 
 =item tagged 
 
-Similar to parsed, but the input text has been part-of-speech tagged with
-Penn Treebank tags (perhaps using the Brill tagger).
+The input has been part-of-speech tagged with Penn Treebank tags.
+Compounds are not identified, and untagged words are ignored. 
 
 =item wntagged
 
-Similar to tagged, except that the input should only contain words known to
-WordNet, and each word should have a letter indicating the part of speech
-('n', 'v', 'a', or 'r' for nouns, verbs, adjectives, and adverbs).
-For example:
-
-  dog#n run#v fast#r
-
-Additionally, no attempt will be made to search for other valid forms of the
-words in the input.  For example, if 'dogs#n' occurs in the input, the
-program will not attempt to use other forms such as 'dog#n'.
+The input has been part-of-speech tagged with WordNet tags (n, v, a, r).
+Compounds are not identified, and untagged words are ignored. 
 
 =back
 

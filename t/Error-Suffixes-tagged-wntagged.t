@@ -33,7 +33,7 @@ else {
         plan tests => 41;
      }
 
-my $default_stoplist_raw_txt = File::Spec->catfile ('web','cgi-bin','allwords','default-stoplist-raw.txt');
+my $default_stoplist_raw_txt = File::Spec->catfile ('web','cgi-bin','allwords','user_data','default-stoplist-raw.txt');
 ok (-e $default_stoplist_raw_txt);
 
 # =============================================================

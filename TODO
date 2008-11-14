@@ -6,40 +6,46 @@ SYNOPSIS
     driver, and web interface.
 
 DESCRIPTION
-  For version 0.12
-    *   Store error code and error message in AllWords object which will be
+  For version 0.13
+    1)  Fix config file issue. If the config file is malformed, you will see
+        the error message where allwords_server.pl is running. However, no
+        proper error message will be shown to the end user.
+
+    2)  Add logging for AllWords.pm. We log allwords_server.pl. However we
+        don't log AllWords.pm, which makes it difficult for debugging if
+        something goes wrong in the core algorithm.
+
+    3)  Store error code and error message in AllWords object which will be
         useful in AllWords clients, that is allwords_server.pl and wsd.pl.
         We can check for those errors and take appropriate actions in the
         client code.
 
-    *   Had a number of reported test failures in 0.08 due to WordNet
+    4)  Had a number of reported test failures in 0.08 due to WordNet
         version issues. Need to add version checks to test cases to avoid
         this. These tests should use WordNet::Tools, not the deprecated
         version() method in QueryData.
 
-    *   Expanding set of POS tags that can be used, either by modifying
+    5)  Expanding set of POS tags that can be used, either by modifying
         AllWords.pm or allowing user to submit a config file of some kind
         defining the tag set. At present limited to Penn TreeBank set of 47
         tags.
 
-    *   Return codes that identifies trace level (to enable color coding).
+    6)  Return codes that identifies trace level (to enable color coding).
 
-    *   Graceful shutdown and restart of web server. Allow for a stop or
+    7)  Graceful shutdown and restart of web server. Allow for a stop or
         restart command from the command line, rather than having to kill
         the process.
 
-    *   Adding proper logging for server. (What does this mean?)
-
-    *   Make a design decision about whether web interface should
+    8)  Make a design decision about whether web interface should
         communicate directly with AllWords.pm via disambiguation method, or
         should use wsd.pl command.
 
-    *   Develop methods for testing web interface, or at least directly
+    9)  Develop methods for testing web interface, or at least directly
         testing disambiguate method as used by web interface. Should have
         test cases that can be run to demonstrate problems as listed here,
         and also make sure that once they are fixed they stay fixed.
 
-    *   Expand the testing in /t for AllWords.pm and wsd.pl. Right now it's
+    10) Expand the testing in /t for AllWords.pm and wsd.pl. Right now it's
         quite minimal, and has very limited coverage. We should have
         multiple .t files, organized in some way to indicate what kind of
         testing we are doing, maybe based on format and then options being
@@ -55,10 +61,12 @@ AUTHORS
      Ted Pedersen, University of Minnesota, Duluth
      tpederse at d.umn.edu
 
-    This document last modified by : $Id: TODO.pod,v 1.7 2008/06/17 16:51:15
+    This document last modified by : $Id: TODO.pod,v 1.8 2008/11/04 14:48:37
     kvarada Exp $
 
 SEE ALSO
+    CHANGES, README, INSTALL
+
 COPYRIGHT AND LICENSE
     Copyright (c) 2008, Varada Kolhatkar, Ted Pedersen, Jason Michelizzi
 

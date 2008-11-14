@@ -1,4 +1,4 @@
-# $Id: wsd.t,v 1.5 2008/06/16 14:47:33 kvarada Exp $
+# $Id: wsd.t,v 1.6 2008/11/06 02:47:33 kvarada Exp $
 #
 # simple test script for wsd.pl
 
@@ -55,7 +55,7 @@ ok (open (IN, '>', $t1in));
 print IN "parking_tickets/NNS are/VBP expensive/JJ";
 close IN;
 
-$output = `$^X $inc $wsd_pl --context $t1in --format tagged --type WordNet::Similarity::lesk --silent 2>&1`;
+$output = `$^X $inc $wsd_pl --context $t1in --format tagged --type WordNet::Similarity::lesk`;
 chomp $output;
 is ($output, $expected);
 
@@ -68,7 +68,7 @@ print IN "parking_tickets, are expensive.";
 
 close IN;
 
-$output = `$^X $inc $wsd_pl --context $t2in --format raw --type WordNet::Similarity::lesk --silent 2>&1`;
+$output = `$^X $inc $wsd_pl --context $t2in --format raw --type WordNet::Similarity::lesk`;
 chomp $output;
 is ($output, $expected);
 

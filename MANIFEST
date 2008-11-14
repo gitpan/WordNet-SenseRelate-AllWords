@@ -23,10 +23,11 @@ t/wsd.t
 TODO
 utils/scorer2-format.pl
 utils/semcor-reformat.pl
+utils/sentence_split.pl
 utils/wsd.pl
 web/cgi-bin/allwords/allwords.cgi
 web/cgi-bin/allwords/allwords_server.pl
-web/cgi-bin/allwords/default-stoplist-raw.txt
+web/cgi-bin/allwords/user_data/default-stoplist-raw.txt
 web/cgi-bin/allwords/user_data/README.cgi-bin.user_data.pod
 web/cgi-bin/allwords/version.cgi
 web/htdocs/allwords/allwords.html

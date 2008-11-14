@@ -1,8 +1,13 @@
-#!/usr/local/bin/perl -w
+#!/usr/bin/perl -w
 use IO::Socket;
-my $host='127.0.0.1';
-my $port=7070;
 use CGI;
+
+# change the value of $remote_host variable to the
+# ip where you are running allwords server.
+
+my $remote_host='127.0.0.1';
+my $remote_port=32323;
+my $hostname;
 
 # Mapping from hash-code to version
 my %versionMap = ('eOS9lXC6GvMWznF1wkZofDdtbBU' => '3.0', 'LL1BZMsWkr0YOuiewfbiL656+Q4' => '2.1');
@@ -10,22 +15,27 @@ my $cgi = CGI->new;
 my $filename;
 print $cgi->header;
 print $cgi->h3("Version information");
+$hostname=$ENV{'SERVER_NAME'};
 
 # check if we want to show the version information (version of WordNet, etc.)
 my $showversion = $cgi->param ('version');
 if ($showversion) 
 {
-	my $sock=new IO::Socket::INET(
-                        PeerAddr => $host,
-                        PeerPort => $port,
-                        Proto => 'tcp',
-                        );
-if( !defined $sock)
-{
- 	writetoCGI("Sorry WordNet::SenseRelate::AllWords is down. Please try later");
-	die "Could not create socket: $!\n";
-}
-$sock->autoflush(1);
+	# connect to allwords server
+	 socket (Server, PF_INET, SOCK_STREAM, getprotobyname ('tcp'));
+
+	 my $internet_addr = inet_aton ($remote_host) or do {
+		 print "<p>Could not convert $remote_host to an IP address: $!</p>\n";
+		 die;
+			 };
+
+			 my $paddr = sockaddr_in ($remote_port, $internet_addr);
+
+			 unless (connect (Server, $paddr)) {
+				 print "<p>Cannot connect to server $remote_host:$remote_port ($!)</p>\n";
+			die;
+                 }
+select ((select (Server), $|=1)[0]);
 print "<html>
 <head>
 <title>AllWords Version info</title>
@@ -36,7 +46,7 @@ die "can't fork: $!" unless defined($kidpid = fork());
     if ($kidpid)
     {
         # copy the socket to CGI output
-        while (defined ($line = <$sock>))
+        while (defined ($line = <Server>))
         {
 			if ($line =~ /^v (\S+) (\S+)/) 
 			{
@@ -62,16 +72,16 @@ die "can't fork: $!" unless defined($kidpid = fork());
 		    # be untainted.
 		    $t_osinfo =~ /(.*)/;
 		    print "<p>HTTP server: $ENV{HTTP_HOST} ($1)</p>\n";
-		    print "<p>SenseRelate::AllWords server: $host</p>\n";
+		    print "<p>SenseRelate::AllWords server: $remote_host</p>\n";
 
-		print "<p><a href=\"http://talisker.d.umn.edu/allwords/allwords.html\">Back</a></p>";
+		print "<p><a href=\"http://$hostname/allwords/allwords.html\">Back</a></p>";
         kill("TERM", $kidpid);                  # send SIGTERM to child
     }
     # the else{} block runs only in the child process
     else
     {
-		$line="version information\n";
-	    print $sock $line;
+		$line="<version information>:\n";
+	    print Server $line;
     }
 }
 
@@ -80,18 +90,12 @@ die "can't fork: $!" unless defined($kidpid = fork());
 version.cgi - [Web] CGI script implementing a portion of a web interface 
 for WordNet::SenseRelate::AllWords
 
-=head1 SYNOPSIS
-
-	connect to allwords_server.pl
-	Get version information from the server
-	Display version information
-
 =head1 DESCRIPTION
 
-This script works in conjunction with allwords_server.pl to
-provide version information for WordNet::SenseRelate::AllWords web 
-interface. If the user requests version information,
-this script takes action. The script sends request to allwords_server.pl for version information. 
+This script works in conjunction with allwords_server.pl to provide 
+version information for WordNet::SenseRelate::AllWords web interface.
+If the user requests version information, this script takes action. 
+The script sends request to allwords_server.pl for version information. 
 After receiving results from the server, they are displayed to the user.
 
 =head1 AUTHORS
@@ -103,7 +107,7 @@ After receiving results from the server, they are displayed to the user.
  tpederse at d.umn.edu
 
 This document last modified by : 
-$Id: version.cgi,v 1.5 2008/05/30 00:44:40 tpederse Exp $ 
+$Id: version.cgi,v 1.9 2008/11/05 00:55:55 kvarada Exp $ 
 
 =head1 SEE ALSO
 

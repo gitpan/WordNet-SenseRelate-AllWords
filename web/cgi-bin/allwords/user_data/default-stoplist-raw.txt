@@ -1,9 +1,10 @@
-/\bi\b/
 /\ba\b/
 /\ban\b/
 /\bas\b/
 /\bat\b/
 /\bby\b/
+/\bi\b/
+/\bit\b/
 /\bhe\b/
 /\bhis\b/
 /\bme\b/

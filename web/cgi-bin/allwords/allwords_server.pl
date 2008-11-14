@@ -1,4 +1,4 @@
-#!/usr/local/bin/perl -w
+#!/usr/bin/perl -w
 use warnings;
 use strict;
 
@@ -7,14 +7,16 @@ use WordNet::QueryData;
 use WordNet::Tools;
 use WordNet::SenseRelate::AllWords;
 use WordNet::Similarity;
+use Getopt::Long;
 
 my $wnlocation = '/usr/local/WordNet-3.0/dict';
-
 my $localhost = '127.0.0.1';
-my $localport = 7070;
-my $proto = "tcp";
-my $client; 
+my $localport = 32323;
+my $logfile;
 
+my $help;
+my $version;
+my $client;
 my $text;
 my @tokens;
 my $line;
@@ -23,15 +25,45 @@ my $sentence;
 my $temp; # for accessing %options hash
 
 my @context;
-my $contextfile;
+my $contextfile="./user_data/tmp_client_input.txt";
+my $contextflag=0;
+my $stoplistflag=0;
+my $configflag=0;
 my $windowSize;
 my $format;
 my $scheme;
 
 # result variables
-my $logfile="./log.txt";
-my $status; # to store the status of system commands to create and move directories...
-my $val; # for reading each word after disambiguation
+my $status; # to store the status of system commands to create 
+			#and move directories...
+my $val;	# for reading each word after disambiguation
+
+
+my $ok = GetOptions ('logfile=s' => \$logfile,
+			 'wnlocation=s' => \$wnlocation, 	
+			 'port=i' => \$localport,
+		     help => \$help,
+		     version => \$version,
+		     );
+$ok or exit 1;
+
+if ($help) {
+    showUsage ("Long");
+    exit;
+}
+
+if ($version) {
+    print "allwords_server.pl - WordNet::SenseRelate::AllWords web interface server\n";
+    print 'Last modified by : $Id: allwords_server.pl,v 1.31 2008/11/04 15:36:02 kvarada Exp $';
+    print "\n";
+    exit;
+}
+
+unless (defined $logfile) {
+    print STDERR "The --logfile argument is required. This is the logfile path for allwords_server.pl log\n";
+    showUsage ();
+    exit 1;
+}
 
 my $success = open LFH, ">>$logfile";
 if(!$success)
@@ -65,45 +97,44 @@ my $tracefilename;
 my $resultfilename;
 my $doc_base = "../../htdocs/allwords/user_data";
 
-# This is the name of the logfile of AllWords.pm. The file will be stored in 
-# directory of the webserver
-my $outfile = "allwords_outfile.txt";
-
-#...........................................................................
+# This is the name of the logfile of AllWords.pm. The file will be 
+# stored in directory of the webserver
+#
+#........................................................................
 #
 # Compoundifying is done using compoundify method of WordNet::Tools.
 #
-#...........................................................................
+#........................................................................
 
 my $wntools = WordNet::Tools->new($qd);
 $wntools or die "\nCouldn't construct WordNet::Tools object"; 
 print LFH "\nWordNet::SenseRelate::Tools object sucessfully created";
 
-my $sock = new IO::Socket::INET (
-                LocalHost => $localhost,
-                LocalPort => $localport,
-                Proto => $proto,
-                Listen => SOMAXCONN,
-                Reuse => 1,
-                timeout => 5,
-                );
-$sock or die "\nCould not create socket: $!\n";
-print LFH "\nSocket created with following details \nLocalHost => $localhost\nLocalPort => $localport\nProto => $proto";
+my $sock = IO::Socket::INET->new(
+		   LocalPort => $localport,
+		   Listen => SOMAXCONN,
+		   Reuse => 1,
+		   Type => SOCK_STREAM
+) or die "Could not bind to network port: $! \n";
+
+print LFH "\nSocket created with following details \nLocalHost => $localhost\nLocalPort => $localport\nProto => tcp";
 
 print LFH "\n[Server $0 accepting clients]\n";
 while ($client = $sock->accept()){	
    $client->autoflush(1);	
    print LFH "\nClient $client is accepted\n";	
    %options= (wordnet => $qd, wntools => $wntools);
-   $options{outfile} = $outfile;
    @sentences=();
    $sentence="";
    $text="";
+   $contextflag=0;
+   $stoplistflag=0;
+   $configflag=0;
    while(defined ($line = <$client>))
    {	
 	chomp($line);
 	@tokens=split(/:/,$line);
-		if ($line =~ /version information/) 
+		if( $line =~ /<version information>:/) 
 		{
 		    # get version information
 		    my $qdver = $qd->VERSION ();
@@ -122,26 +153,44 @@ while ($client = $sock->accept()){
 			$showversion=1;
 			print LFH "\nShow verrion flag => $showversion";
 			close($client);	
+			last;
 		}
-		elsif ($line =~  /Document Base:/)
+		elsif($line =~ /<start-of-context>/)
+		{
+			$contextflag=1;
+			open (CFH, '>>', "$contextfile") or die "Cannot open $contextfile : $!";				
+		} 
+		elsif($line =~ /<end-of-context>/)
+		{
+			$contextflag=0;
+			close CFH;
+		}
+		elsif($contextflag == 1 && $line =~ /<con>/)
+	    {
+			print CFH $tokens[1];	
+			print CFH "\n";
+	    }
+		elsif ($line =~  /<Document Base>:/)
 	    {
 			$doc_base=$tokens[1];
 			print LFH "\nDocument Base => $doc_base";
 	    }
-		elsif ($line =~  /User Directory:/)
+		elsif ($line =~  /<User Directory>:/)
 	    {
-			$usr_dir="$tokens[1]";
+			$usr_dir="$tokens[1]"."_server";
 			print LFH "\nUser Directory => $usr_dir";
+			$status=system("mkdir $usr_dir");
+			$status == 0 ? print LFH "\n created dir $usr_dir.":print LFH "\nDir already present or error creating dir $usr_dir"; 
+			$contextfile="$usr_dir"."/context.txt";
 			$tracefilename="$usr_dir"."/trace.txt";
 			$resultfilename="$usr_dir"."/results.txt";
 			print LFH "\nTrace file name => $tracefilename";
 	    }
-		elsif ($line =~ /Contextfile:/)
+		elsif ($line =~ /<Contextfile>:/)
 		{
 			$showversion=0;
-			$contextfile=$tokens[1];
 			print LFH "\nContextfile => $contextfile";
-			open (CFH, '<', "$usr_dir/"."$contextfile") or die "Cannot open '$contextfile': $!";				
+			open (CFH, '<', "$contextfile") or die "Cannot open $contextfile: $!";				
 			while(<CFH>)
 			{
 				$text=$text.$_;
@@ -150,11 +199,11 @@ while ($client = $sock->accept()){
 			@sentences = split(/\n+/,$text);
 			close CFH;
 	    }
-		elsif ($line =~ /Window size:/)
+		elsif ($line =~ /<Window size>:/)
 		{
 			$windowSize=$tokens[1];
 			print LFH "\nWindow Size => $windowSize";
-	    }elsif ($line =~ /Format:/)
+	    }elsif ($line =~ /<Format>:/)
 	    {
 			$format=$tokens[1];
 			$istagged = ($format eq 'tagged') ? 1 : 0;
@@ -163,31 +212,61 @@ while ($client = $sock->accept()){
 			$options{wnformat} = 1 if $format eq 'wntagged';
 			$options{wnformat} ? print LFH "\nwntagged text => YES": print LFH "\nwntagged text => NO" ;
 
-	    }elsif ($line =~ /Scheme:/)
+	    }elsif ($line =~ /<Scheme>:/)
 	    {
 			$scheme=$tokens[1];
 			print LFH "\nscheme => $scheme";
-	    }elsif ($line =~ /trace:/)
+	    }elsif ($line =~ /<trace>:/)
 	    {
 			$options{trace} = $tokens[1];
-	    }elsif ($line =~ /pairScore:/)
+	    }elsif ($line =~ /<pairScore>:/)
 	    {	
 			$options{pairScore} = $tokens[1];
-	    }elsif ($line =~ /measure:/)
+	    }elsif ($line =~ /<measure>:/)
 	    {	
 			$options{measure} = "WordNet::Similarity::"."$tokens[1]";
 
-		}elsif ($line =~ /contextScore:/)
+		}elsif ($line =~ /<contextScore>:/)
 	    {	
 			$options{contextScore} = $tokens[1];
-	    }elsif ($line =~ /stoplist:/)
+	    }elsif ($line =~ /<stoplist>:/)
 	    {	
-			$options{stoplist} = $tokens[1];
-	    }elsif ($line =~ /config:/)
+			$options{stoplist} = "$usr_dir/"."$tokens[1]";
+	    }elsif ($line =~ /<config>:/)
 	    {	
-			$options{config} = $tokens[1];
+			$options{config} = "$usr_dir/"."$tokens[1]";
 	    }
-		elsif($line eq "End\0012")
+		elsif($line =~ /<start-of-stoplist>/)
+		{
+			$stoplistflag=1;
+			open (SFH, '>>', "$options{stoplist}") or die "Cannot open $options{stoplist} : $!";				
+		} 
+		elsif($line =~ /<end-of-stoplist>/)
+		{
+			$stoplistflag=0;
+			close SFH;
+		}
+		elsif($stoplistflag == 1 && $line =~ /<stp>/)
+	    {
+			print SFH $tokens[1];	
+			print SFH "\n";
+	    }
+		elsif($line =~ /<start-of-config>/)
+		{
+			$configflag=1;
+			open (CFFH, '>>', "$options{config}") or die "Cannot open $options{config} : $!";				
+		} 
+		elsif($line =~ /<end-of-config>/)
+		{
+			$configflag=0;
+			close CFFH;
+		}
+		elsif($configflag == 1 && $line =~ /<cfg>/)
+	    {
+			print CFFH $tokens[1];	
+			print CFFH "\n";
+	    }
+		elsif($line eq "<End>\0012")
 		{
 			last;
 		}
@@ -225,20 +304,26 @@ foreach $temp (keys(%options))
 					  tagged => $istagged,
 					  context => [@context]);
 
-	#..................................................................................
+	#........................................................................
 	#
 	# AllWords.pm returns words with suffixes attached to it. 
 	# If #o is attached, the word is a stopword
 	# If #ND is attached the word is not defined in WordNet
 	# If #NR is attached no relatedness found with the surrounding words
 	# If #IT is attached, the word has invalid tag
-	# Otherwise, the chosen sense along with the part of speech is sent to the client
+	# Otherwise, the chosen sense along with the part of speech is sent to
+	# the client
 	#
-	#.................................................................................
-
+	#........................................................................
+	
+	print RFH join (' ', @context), "\n";
 	print RFH join (' ', @res), "\n";
+
+	print LFH join (' ', @context), "\n";
 	print LFH join (' ', @res), "\n";
-	print $client join (' ', @res), "\n";
+
+	print $client join (' ', @context), "\015\012";
+	print $client join (' ', @res), "\015\012";
 		foreach $val (@res)
 		{
 			chomp($val);
@@ -247,125 +332,139 @@ foreach $temp (keys(%options))
 			{
 				print LFH "\n$val : stopword\n";
 				print RFH "\n$val : stopword\n";
-				print $client "\n$val : stopword\n";
+				print $client "\n$val : stopword\015\012";
 			}
 			elsif($val =~ /\#ND/) 
 			{
 				print LFH "\n$val : not in WordNet\n";
 				print RFH "\n$val : not in WordNet\n";
-				print $client "\n$val : not in WordNet\n";
+				print $client "\n$val : not in WordNet\015\012";
 			}
 			elsif($val =~ /\#NR/)
 			{
 				print LFH "\n$val: No relatedness found with the surrounding words\n";
 				print RFH "\n$val: No relatedness found with the surrounding words\n";
-				print $client "\n$val: No relatedness found with the surrounding words\n";
+				print $client "\n$val: No relatedness found with the surrounding words\015\012";
 
 			}
 			elsif($val =~ /\#IT/)
 			{
 				print LFH "\n$val: Invalid Tag\n";
 				print RFH "\n$val: Invalid Tag\n";
-				print $client "\n$val: Invalid Tag\n";
+				print $client "\n$val: Invalid Tag\015\012";
 
 			}
 			elsif($val =~ /\#NT/)
 			{
 				print LFH "\n$val: No Tag\n";
 				print RFH "\n$val: No Tag\n";
-				print $client "\n$val: No Tag\n";
+				print $client "\n$val: No Tag\015\012";
 			}
 
 			elsif($val =~ /\#CL/)
 			{
 				print LFH "\n$val: Closed Class Word\n";
 				print RFH "\n$val: Closed Class Word\n";
-				print $client "\n$val: Closed Class Word\n";
+				print $client "\n$val: Closed Class Word\015\012";
 			}
 			elsif($val =~ /\#MW/)
 			{
 				print LFH "\n$val: Missing Word\n";
 				print RFH "\n$val: Missing Word\n";
-				print $client "\n$val: Missing Word\n";
+				print $client "\n$val: Missing Word\015\012";
 			}
-
-
 			else
 			{
 				my ($gloss) = $qd->querySense ($val, "glos");
 				print LFH "\n$val : $gloss\n";
 				print RFH "\n$val : $gloss\n";
-				print $client "\n$val : $gloss\n";
+				print $client "\n$val : $gloss\015\012";
 			}
 
 		}
 	
-
 		if ($options{trace}) {
 				open TFH, '>', $tracefilename or print "Cannot open $tracefilename for writing: $!";
 				print TFH join (' ', @res), "\n";
+				print $client "<start-of-trace>\015\012";
+				print $client join (' ', @res), "\015\012";
 				my $tstr = $obj->getTrace();
 				print TFH "$tstr \n";
+				print $client "$tstr \015\012";
+				print $client "<end-of-trace>\015\012";
 				print LFH "$tstr \n";
 				close TFH;
 		}
 
-   }
-   	close RFH;
-		$status=system("tar -cvf $usr_dir.tar $usr_dir >& tar_log");
-		$status == 0 ? print LFH "\nThe tar file of results successfully created.":print LFH "\nError while creating the tar file of results."; 
-
-		$status=system("gzip $usr_dir.tar");
-		$status==0 ? print LFH "\nThe zip tar file of results successfully created.":print LFH "Error while zipping the tar file of results.";
-
-
-		$status=system("mv $usr_dir.tar.gz $doc_base/allwords/user_data/");
-		$status == 0 ? print LFH "The tar file successfully copied to $doc_base" :print LFH "Error while copying the tar file.";
-
-		$status=system("mv $usr_dir $doc_base/allwords/user_data/");
-		if($status != 0)
-		{
-			print LFH "Can not create user directory in /htdocs.";
-		}
+   }	
+		close RFH;
 		close($client);	
 	}
+}
+
+
+sub showUsage
+{
+    my $long = shift;
+    print "Usage: allwords_server.pl --logfile FILE \n";
+    print "              [--wnlocation WordNet path] [--port PORT] \n";
+    print "              | {--help | --version}\n";
+
+    if ($long) {
+	print "Options:\n";
+	print "\t--logfile FILE             logfile path for allwords.pl log\n";
+	print "\t--wnlocation WordNet path  WordNet path\n";
+	print "\t--port PORTNUMBER          Specify the port PORTNUMBER for the server to listen on \n";
+	print "\t--help                     show this help message\n";
+	print "\t--version                  show version information\n";
+    }
 }
 
 =head1 NAME
 
 allwords_server.pl - [Web] The server for allwords.cgi and version.cgi
 
-=head1 SYNOPSIS
-
- $client = $sock->accept();
-
- my $obj = WordNet::SenseRelate::AllWords->new(%options);
-
- my @res = $obj->disambiguate (window => $windowSize, 
-				scheme => $scheme, 
-				tagged => $istagged, 
-				context => [@context]);
-
- foreach $val (@res)
-	print $client "\n$val : $gloss\n";
-	
 =head1 DESCRIPTION
 
 This script implements the backend of the web interface for 
 WordNet::SenseRelate::AllWords
 
-This script listens to a port waiting for a request form allwords.cgi or
-version.cgi. 
-If disambiguation request is made by allwords.cgi, the server first gets input options from allwords.cgi. Then it creates AllWords object. Using AllWords object and input options 
-disambiguate method is called. The result returned by disambiguate is checked and appropriate message is sent back to allwords.cgi client. 
+This script listens to a port waiting for a request form allwords.cgi
+or version.cgi. If disambiguation request is made by allwords.cgi, the
+server first gets input options from allwords.cgi. Then it creates 
+AllWords object. Using AllWords object and input options disambiguate 
+method is called. The result returned by disambiguate is checked and 
+appropriate message is sent back to allwords.cgi client. 
 
-If the version information is requested, appropriate version information of the respective components is fetched and is passed to version.cgi client.
+Client-Server Communication
+The server loads all the required modules and listens to the port 32323. 
+The client sends informtation with a preamble to know the server what kind
+of input data it is going to get. For example, the client reads the text 
+to be disambiguated from the user and sends the context file to the server 
+as below
 
-If the client requests for trace level, then trace output is fetched calling getTrace() method of AllWords.pm.
+<start-of-context>
+context-line 1
+context-line 2
+context-line 3
+.
+.
+.
+<end-of-context>
 
-After all processing is done, it moves the user_data along with the tarball of result files 
-to htdocs/allwords/user_data directory.
+The tags <start-of-context> and <end-of-context> are not going to conflict 
+with the text to be disambiguated as we clean the text before disambiguation
+and hence the characters '<' and '>' will be removed from the text.
 
+If the version information is requested, appropriate version information
+of the respective components is fetched and is passed to version.cgi client.
+
+If the client requests for trace level, then trace output is fetched calling
+getTrace() method of AllWords.pm.
+
+Along with sending all information to the client, the server also stores all 
+the input data and result files on the server machine in a unique directory 
+for each client. 
 
 =head1 AUTHORS
 
@@ -376,7 +475,7 @@ to htdocs/allwords/user_data directory.
  tpederse at d.umn.edu
 
 This document last modified by : 
-$Id: allwords_server.pl,v 1.18 2008/06/16 01:36:57 kvarada Exp $ 
+$Id: allwords_server.pl,v 1.31 2008/11/04 15:36:02 kvarada Exp $ 
 
 =head1 SEE ALSO
 

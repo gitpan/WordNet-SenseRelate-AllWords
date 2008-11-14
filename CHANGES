@@ -2,89 +2,109 @@ NAME
     CHANGES - Revision history for WordNet::SenseRelate::AllWords
 
 DESCRIPTION
+    0.12
+        Date : November 03, 2008
+
+        1)  Fixed client server model for the web interface. The allwords
+            server can run on a different machine, from where your web
+            server is running.
+
+        2)  User data is now stored on the client machine so that it is
+            easily accessible to the user.
+
+        3)  Added a mandatory --logfile parameter alomg with other optional
+            parameters to allwords_server.pl
+
+        4)  Removed --outfile option from wsd.pl and added --glosses options
+            to display glosses
+
+        5)  Moved default-stoplist-raw.txt from
+            WordNet-SenseRelate-AllWords/web/cgi-bin/allwords to
+            /WordNet-SenseRelate-AllWords/web/cgi-bin/allwords/user_data
+
     0.11
         Date : June 17, 2008
 
-        *   Removed compounding logic from AllWords.pm. Compounding is now
+        1)  Removed compounding logic from AllWords.pm. Compounding is now
             done using WordNet::Tools compoundify. The clients, wsd.pl and
             allwords_server.pl don't call compoundify any more. They creat
             WordNet::Tools object and pass it as a parameter while creating
             AllWords object.
 
-        *   Moved sentence splitter from wsd.pl to a util program,
+        2)  Moved sentence splitter from wsd.pl to a util program,
             sentence_split.pl. All input formats will now assume that input
             is one sentence per line, one line per sentence.
 
-        *   Removed parsed format test case from t/wsd.t
+        3)  Removed parsed format test case from t/wsd.t
 
-        *   Context was considered as a single line if more than one line
+        4)  Context was considered as a single line if more than one line
             was entered in the textarea on the web interface. Now the input
             is considered as one sentence per line, one line per sentence.
 
     0.10
         Date : May 29, 2008
 
-        *   Added proper error messages for the words which are ignored
+        1)  Added proper error messages for the words which are ignored
             during disambiguation. A suffix is attached to the word in order
             to indicate why it is ignored for disambiguation. For example,
             the word 'the' is not defined in WordNet and hence is ignored.
             We attach the#ND to indicate that this word is not defined in
             WordNet
 
-        *   Added context file and config file option to the Web interface
+        2)  Added context file and config file option to the Web interface
 
-        *   Removed --compounds option from wsd.pl as we decided to use
+        3)  Removed --compounds option from wsd.pl as we decided to use
             centralized compoundify module WordNet::Tools
 
-        *   Added compoundify in wsd.pl. This is done using the centralized
+        4)  Added compoundify in wsd.pl. This is done using the centralized
             WordNet::Tools module
 
-        *   Removed WordNet::SenseRelate dependency of the Web interface.
+        5)  Removed WordNet::SenseRelate dependency of the Web interface.
             Now compoundifying is done using WordNet::Tools
 
     0.09
         Date : April 10, 2008 (all changes by TDP)
 
-        *   Modified test cases further to check for WordNet version using
+        1)  Modified test cases further to check for WordNet version using
             WordNet::Tools. Changes introduced in 0.08 testing were based on
             WordNet::QueryData's deprecated version test. Now skip all tests
             if we don't find version 2.0, 2.1, or 3.0, and introduce version
             specific tests within those as needed (if results change from
             one version of WordNet to the next).
 
-        *   Added reference to Jason Michelizzi's MS thesis, which gives
+        2)  Added reference to Jason Michelizzi's MS thesis, which gives
             many details about the AllWords approach, plus experimental
             results
 
     0.08
         Date : March 20, 2008 (all changes by TDP)
 
-        *   Fixed bug in AllWords.pm that caused disambiguate to fail when
+        1)  Fixed bug in AllWords.pm that caused disambiguate to fail when
             window not specified. we now default to window size 3.
 
-        *   Fixed synopsis in AllWords.pm to provide a cut and paste program
+        2)  Fixed synopsis in AllWords.pm to provide a cut and paste program
             that should run
 
-        *   Modified Makefile.PL to allow for use of 'make dist' and create
+        3)  Modified Makefile.PL to allow for use of 'make dist' and create
             META.yml
 
-        *   Changed release procedure, now using 'make dist' in order to
+        4)  Changed release procedure, now using 'make dist' in order to
             avoid CVS export, and also create a directory that unpacks with
             a version number.
 
     0.07
         Date : March 17, 2008
 
-        *   Added web interface support for AllWords (see /web for details)
+        1)  Added web interface support for AllWords (see /web for details)
             (vk)
 
-        *   Updated version information in AllWords.pm to 0.07 (vk)
+        2)  Updated version information in AllWords.pm to 0.07 (vk)
 
-        *   changed Changes file to CHANGES.pod (tdp)
+        3)  changed Changes file to CHANGES.pod (tdp)
 
-        *   added INSTALL.pod to /web (tdp)
+        4)  added INSTALL.pod to /web (tdp)
 
-        *   updated version, copyright, and author info in README.pod (tdp)
+        5)  updated version, copyright, and author info in README.pod (tdp)
 
     0.06
         Thu May 19 14:06:10 2005 (all changes by JM)
@@ -171,10 +191,11 @@ AUTHORS
      Ted Pedersen, University of Minnesota, Duluth
      tpederse at d.umn.edu
 
-    This document last modified by : $Id: CHANGES.pod,v 1.9 2008/06/17
-    16:48:51 kvarada Exp $
+    This document last modified by : $Id: CHANGES.pod,v 1.11 2008/11/05
+    04:50:01 kvarada Exp $
 
 SEE ALSO
+README, INSTALL, TODO
 COPYRIGHT AND LICENSE
     Copyright (c) 2008, Varada Kolhatkar, Ted Pedersen, Jason Michelizzi
 

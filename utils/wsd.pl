@@ -1,6 +1,6 @@
-#!/usr/local/bin/perl
+#!/usr/bin/perl
 
-# $Id: wsd.pl,v 1.21 2008/06/16 14:26:14 kvarada Exp $
+# $Id: wsd.pl,v 1.22 2008/10/18 19:21:52 kvarada Exp $
 
 use strict;
 use warnings;
@@ -18,12 +18,14 @@ our $window = 3;
 our $contextScore = 0;
 our $pairScore = 0;
 our $silent;
+our $glosses;
 our $trace;
 our $help;
 our $version;
 our $scheme = 'normal';
 our $outfile;
 our $forcepos;
+our $val;
 
 our $format; # raw|tagged|wntagged
 my $OK_CHARS='-a-zA-Z0-9_\'\n ';
@@ -38,6 +40,7 @@ my $ok = GetOptions ('type|measure=s' => \$measure,
 		     'scheme=s' => \$scheme,
 		     forcepos => \$forcepos,
 		     silent => \$silent,
+			 glosses => \$glosses,
 		     'trace=i' => \$trace,
 		     help => \$help,
 		     version => \$version,
@@ -53,7 +56,7 @@ if ($help) {
 
 if ($version) {
     print "wsd.pl - assign a sense to all words in a context\n";
-    print 'Last modified by : $Id: wsd.pl,v 1.21 2008/06/16 14:26:14 kvarada Exp $';
+    print 'Last modified by : $Id: wsd.pl,v 1.22 2008/10/18 19:21:52 kvarada Exp $';
     print "\n";
     exit;
 }
@@ -88,31 +91,30 @@ if ($window < 2) {
     exit 1;
 }
 
-unless ($silent) {
-    print "Current configuration:\n";
-    print "    context file  : $contextf\n";
-    print "    format        : $format\n";
-    print "    scheme        : $scheme\n";
-    print "    tagged text   : ", ($istagged ? "yes" : "no"), "\n";
+    print STDERR "Current configuration:\n";
+    print STDERR "    context file  : $contextf\n";
+    print STDERR "    format        : $format\n";
+    print STDERR "    scheme        : $scheme\n";
+    print STDERR "    tagged text   : ", ($istagged ? "yes" : "no"), "\n";
 
     if (($scheme eq 'normal') or ($scheme eq 'fixed')) {
 	# these items are only relevent to normal mode (not sense1 or random)
-	print "    measure       : $measure\n";
-	print "    window        : ", $window, "\n";
-	print "    contextScore  : ", $contextScore, "\n";
-	print "    pairScore     : ", $pairScore, "\n";
-	print "    measure config: ", ($mconfig ? $mconfig : '(none)'), "\n";
-	print "    trace         : ", ($trace ? $trace : "no"), "\n";
-	print "    forcepos      : ", ($forcepos ? "yes" : "no"), "\n";
+	print STDERR "    measure       : $measure\n";
+	print STDERR "    window        : ", $window, "\n";
+	print STDERR "    contextScore  : ", $contextScore, "\n";
+	print STDERR "    pairScore     : ", $pairScore, "\n";
+	print STDERR "    measure config: ", ($mconfig ? $mconfig : '(none)'), "\n";
+	print STDERR "    glosses       : ", ($glosses ? "yes" : "no"), "\n";
+	print STDERR "    trace         : ", ($trace ? $trace : "no"), "\n";
+	print STDERR "    forcepos      : ", ($forcepos ? "yes" : "no"), "\n";
     }
 
-    print "    stoplist      : ", ($stoplist ? $stoplist : '(none)') , "\n";
-}
+    print STDERR "    stoplist      : ", ($stoplist ? $stoplist : '(none)') , "\n";
 
 local $| = 1;
-print "Loading WordNet... " unless $silent;
+print STDERR "Loading WordNet... ";
 my $qd = WordNet::QueryData->new;
-print "done.\n" unless $silent;
+print STDERR "done.\n";
 
 #...........................................................................
 #
@@ -190,9 +192,54 @@ foreach my $sentence (@sentences) {
 				 tagged => $istagged,
 				 scheme => $scheme,
 				 context => [@context]);
-
-    print STDOUT join (' ', @res), "\n";
-
+	if($glosses)
+	{
+		my $i=0;
+		print STDOUT join (' ', @context), "\n";
+		print STDOUT join (' ', @res), "\n";
+		foreach $val (@res)
+		{
+			chomp($val);
+			if($val =~ /\#o/ )
+			{
+				print STDOUT "\n$val : stopword";
+			}
+			elsif($val =~ /\#ND/) 
+			{
+				print STDOUT "\nval : not in WordNet\n";
+			}
+			elsif($val =~ /\#NR/)
+			{
+				print STDOUT "\n$val: No relatedness found with the surrounding words\n";
+			}
+			elsif($val =~ /\#IT/)
+			{
+				print STDOUT "\n$val: Invalid Tag\n";
+			}
+			elsif($val =~ /\#NT/)
+			{
+				print STDOUT "\n$val: No Tag\n";
+			}
+			elsif($val =~ /\#CL/)
+			{
+				print STDOUT "\n$val: Closed Class Word\n";
+			}
+			elsif($val =~ /\#MW/)
+			{
+				print STDOUT "\n$val : Missing Word\n";
+			}
+			else
+			{
+				my ($gloss) = $qd->querySense ($val, "glos");
+				print STDOUT "\n$val : $gloss\n";
+			}
+		}
+		printf "\n";
+	}
+	else
+	{
+		    print STDOUT join (' ', @res), "\n";
+	}
     if ($trace) {
 	my $tstr = $sr->getTrace ();
 	print $tstr, "\n";
@@ -241,7 +288,8 @@ sub showUsage
     print "Usage: wsd.pl --context FILE --format FORMAT [--scheme SCHEME]\n";
     print "              [--type MEASURE] [--config FILE] \n";
     print "              [--stoplist file] [--window INT] [--contextScore NUM]\n";
-    print "              [--pairScore NUM] [--outfile FILE] [--trace INT] [--silent]\n";
+    print "              [--pairScore NUM] [--outfile FILE] [--trace INT] \n";
+	print "              [--glosses][--silent]\n";
     print "              | {--help | --version}\n";
 
     if ($long) {
@@ -264,6 +312,7 @@ sub showUsage
 	print "\t--outfile FILE       create a file with one word-sense per line\n";
 	print "\t--trace INT          set trace levels. greater values show more\n";
 	print "\t                       detail. may be summed to combine output. \n";
+	print "\t--glosses            show glosses of each disambiguated word\n";
 	print "\t--silent             run silently; shows only final output\n";
         print "\t--forcepos           force all words in window of context\n";
         print "\t                       to be same pos as target (pos coercion)\n";

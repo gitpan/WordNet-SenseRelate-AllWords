@@ -1,29 +1,37 @@
-#!/usr/local/bin/perl -w
+#!/usr/bin/perl -w
 use IO::Socket;
 use CGI;
 $CGI::DISABLE_UPLOADS = 0;
 
 # Here we connect to the AllWords server
-my $host='127.0.0.1';
-my $port=7070;
+# If you want to use different port for communication, change it here. 
+
+my $remote_host='127.0.0.1';
+my $remote_port=32323;
+my $proto='tcp';
+my $hostname;
 
 my $OK_CHARS='-a-zA-Z0-9_\'\n ';
 my ($kidpid, $handle, $line);
 my %options;
 my $status;
-my $filename="clientinput.txt"; 
+my $filename; 
 my $inputfile;
 my $stoplistfile;
-my $defstoplistfile="./default-stoplist-raw.txt";
-my $defstop="off";
-my $contextfile;
-my $contextfilename;
+my $defstoplistfile;
 my $stoplistfilename;
 my $stoplist;
-my $configfilename;
+my $contextfile;
+my $contextfilename;
 my $configfile;
+my $configfilename;
+my $tracefilename;
+
+my $traceflag=0;
 my $config;
-my $hostname;
+my $defstop="off";
+
+my $doc_base;
 my @tracelevel=();
 
 BEGIN {
@@ -41,18 +49,21 @@ $hostname=$ENV{'SERVER_NAME'};
 
 my $usr_dir="user_data/". "user".time();
 $inputfile="$usr_dir/"."input.txt";
+$resultfilename="$usr_dir/"."results.txt";
+$tracefilename="$usr_dir"."/trace.txt";
 $status=system("mkdir $usr_dir");
+
 if($status!=0)
 {
 	writetoCGI("Can not create the user directory $usr_dir");
 }
 
+$filename="$usr_dir/clientinput.txt";
+$defstoplistfile="default-stoplist-raw.txt";
 
 my $text = $cgi->param('text1') if defined $cgi->param('text1');
 
 $contextfile=$cgi->param('contextfile') if defined $cgi->param('contextfile');
-
-#if ($cgi->param('text1') eq "" && $cgi->param('contextfile') eq "") {
 
 if ( (!$text)  && (!$contextfile) ) {
 	    writetoCGI("\nPlease use back link to return to original page to enter your text\n");
@@ -133,7 +144,7 @@ if($configfile){
 
 	$configfilename = getFileName($configfile);
 	$config="$usr_dir/"."$configfilename";
-	$options{config} = "$usr_dir/"."$configfilename";
+	$options{config} = "$configfilename";
 	open CONFIG ,">","$config" or writetoCGI("Error in uploading Config file.");
 	while(read($configfile,$buffer,1024))
 	{
@@ -142,8 +153,9 @@ if($configfile){
 	close CONFIG;
 }
 
-# If the user uploads his own stoplist as well as keep the default stoplist option checked, 
-# the stoplist included by the user will always override the default
+# If the user uploads his own stoplist as well as keep the default 
+# stoplist option checked, the stoplist included by the user will 
+# always override the default
 
 $stoplistfile=$cgi->param('stoplist');
 
@@ -151,15 +163,17 @@ if(!$stoplistfile)
 {
 	$defstop=$cgi->param('defstoplist') if defined $cgi->param('defstoplist');
 	if ($defstop eq "on") {
+#		$options{stoplist} = "./user_data/$defstoplistfile";
 		$options{stoplist} = "$defstoplistfile";
-		$status=system("cp $defstoplistfile $usr_dir/$defstoplistfile");
+		$status=system("cp ./user_data/$defstoplistfile $usr_dir/$defstoplistfile");
 		print "Error while copying the stoplist file." unless $status==0;
 	}
 }
 else{
 	$stoplistfilename = getFileName($stoplistfile);
 	$stoplist="$usr_dir/"."$stoplistfilename";
-	$options{stoplist} = "$usr_dir/"."$stoplistfilename";
+#	$options{stoplist} = "$usr_dir/"."$stoplistfilename";
+	$options{stoplist} = "$stoplistfilename";
 	open STOPLIST,">","$stoplist" or writetoCGI("Error in uploading Testfile.");
 	while(read($stoplistfile,$buffer,1024))
 	{
@@ -193,84 +207,176 @@ $options{forcepos} = $cgi->param('forcepos') if defined $cgi->param('forcepos');
 
 
 
-
+$doc_base=$ENV{'DOCUMENT_ROOT'};
 open FH, '>', $filename or die "Cannot open $filename for writing: $!";
 open IFH, '>', $inputfile or die "Cannot open $inputfile for writing: $!";
 
-print FH "Document Base:$ENV{'DOCUMENT_ROOT'}\n";
-print FH "User Directory:$usr_dir\n";
+print FH "<Document Base>:$ENV{'DOCUMENT_ROOT'}\n";
 print IFH "User Directory:$usr_dir\n";
 
-print FH "Contextfile:$contextfilename\n";
+print FH "<Contextfile>:$contextfilename\n";
 print IFH "Contextfile:$contextfilename\n";
 
-print FH "Window size:$windowSize\n";
+print FH "<Window size>:$windowSize\n";
 print IFH "Window size:$windowSize\n";
 
-print FH "Format:$format\n";
+print FH "<Format>:$format\n";
 print IFH "Format:$format\n";
 
-print FH "Scheme:$scheme\n";
+print FH "<Scheme>:$scheme\n";
 print IFH "Scheme:$scheme\n";
 
 while (($key, $value) = each %options) {
-	print FH "$key:$value\n";
+	print FH "<$key>:$value\n";
 	print IFH "$key:$value\n";
 }
-print FH "End\0012\n";
 close IFH;
 close FH;
 
 
-my $sock=new IO::Socket::INET(
-                        PeerAddr => $host,
-                        PeerPort => $port,
-                        Proto => 'tcp',
-                        );
-if( !defined $sock)
-{
- 	writetoCGI("Sorry WordNet::SenseRelate::AllWords is down. Please try later");
-	die "Could not create socket: $!\n";
-}
-$sock->autoflush(1);
+	# connect to allwords server
+	 socket (Server, PF_INET, SOCK_STREAM, getprotobyname ($proto));
+
+	 my $internet_addr = inet_aton ($remote_host) or do {
+		 print "<p>Could not convert $remote_host to an IP address: $!</p>\n";
+		 die;
+			 };
+
+			 my $paddr = sockaddr_in ($remote_port, $internet_addr);
+
+			 unless (connect (Server, $paddr)) {
+				 print "<p>Cannot connect to server $remote_host:$remote_port ($!)</p>\n";
+			die;
+                 }
+select ((select (Server), $|=1)[0]);
+
+print "<html>
+<head>
+<title>AllWords Disambiguation Results</title>
+</head>
+</html>";
+
 die "can't fork: $!" unless defined($kidpid = fork());
 # the if{} block runs only in the parent process
     if ($kidpid)
     {
+  	    open RFH, '>', $resultfilename or print "Cannot open $resultfilename for writing: $!";
         # copy the socket to CGI output
-        while (defined ($line = <$sock>))
+		$traceflag=0;
+        while (defined ($line = <Server>))
         {
-			$line =~ s/</< /g;
-			$line =~ s/>/ >/g;
-			$line =~ s/\#o|\#NR|\#ND|\#IT|\#NT|\#CL|\#MW//g;
-			writetoCGI($line);
+			if( $line =~ /<start-of-trace>/)
+			{
+				$traceflag=1;
+				open TFH, '>', $tracefilename or print "Cannot open $tracefilename for writing: $!";
+			}
+			elsif( $line =~ /<end-of-trace>/ )
+			{
+				$traceflag=0;
+				close TFH;
+			}
+			elsif( $traceflag == 1)
+			{
+				print TFH "$line";
+			}
+			else
+			{
+				$line =~ s/</< /g;
+				$line =~ s/>/ >/g;
+				$line =~ s/\#o|\#NR|\#ND|\#IT|\#NT|\#CL|\#MW//g;
+				print RFH $line;
+				writetoCGI($line);
+			}
         }
+		close RFH;
         kill("TERM", $kidpid);                  # send SIGTERM to child
-	print "<br><br>";
-	if (defined $options{trace}) 
-	{
-			print $cgi->a({-href=>"/allwords/$usr_dir/trace.txt"},"See Trace output");
-			print "<br><br>";
-	}
-	print $cgi->a({-href=>"/allwords/$usr_dir.tar.gz"},"Download");
-	print " the complete tar ball of the result files.", $cgi->p;
-	print $cgi->a({-href=>"/allwords/$usr_dir"},"Browse");
-	print " your directory.", $cgi->p;
+		print "<br><br>";
+		if (defined $options{trace}) 
+		{
+				print $cgi->a({-href=>"/allwords/$usr_dir/trace.txt"},"See Trace output");
+				print "<br><br>";
+		}
+		print $cgi->a({-href=>"/allwords/$usr_dir.tar.gz"},"Download");
+		print " the complete tar ball of the result files.", $cgi->p;
+		print $cgi->a({-href=>"/allwords/$usr_dir"},"Browse");
+		print " your directory.", $cgi->p;
+		$status=system("rm -rf $filename");
+		if ($status) 
+		{
+			writetoCGI("\nCould not delete $filename.\n"); 
+		}
+
+		$status=system("tar -cvf $usr_dir.tar $usr_dir >& user_data/tar_log");
+		if ($status) 
+		{
+			writetoCGI("\nError while creating the tar file of results.\n"); 
+		}
+
+		$status=system("gzip $usr_dir.tar");
+		if ($status) 
+		{
+			writetoCGI("\nError while zipping the tar file of results.\n"); 
+		}
+
+		$status=system("mv $usr_dir.tar.gz $doc_base/allwords/user_data/");
+		if ($status) 
+		{
+			writetoCGI("\nError while copying the tar file.\n");
+		}
+
+		$status=system("mv $usr_dir $doc_base/allwords/user_data/");
+		if ($status) 
+		{
+			writetoCGI("\nCan not create user directory in $doc_base\n");
+		}
     }
     # the else{} block runs only in the child process
     else
     {
-	open FH, '<', $filename or die "Cannot open $filename for reading: $!";
-        #copy CGI input to the socket
-	while (defined ($line = <FH>))
-	{
-	     print $sock $line;
-	}
-	close FH;
-	print "<p><a href=\"http://$hostname/allwords/allwords.html\">Start Over</a></p>";
+		#send context file to the allwords server
+		printf Server "<User Directory>:$usr_dir\n";
+		open CFH, '<', "$context" or die "can't open context file $context for reading : $!";
+		printf Server "<start-of-context>\015\012";
+		while (defined ($line = <CFH>))
+		{
+		     printf Server "<con>:$line\015\012";
+		}
+		printf Server "<end-of-context>\015\012";
+		close CFH;
+		#send other options to the allwords server
+		open FH, '<', $filename or die "Cannot open $filename for reading: $!";
+			#copy CGI input to the socket
+		while (defined ($line = <FH>))
+		{
+			 printf Server $line;
+		}
+		close FH;
+
+		open SFH, '<', "$usr_dir/"."$options{stoplist}" or die "can't open stoplist file $stoplist for reading : $!";
+		printf Server "<start-of-stoplist>\015\012";
+		while (defined ($line = <SFH>))
+		{
+			 printf Server "<stp>:$line\015\012";
+		}
+		printf Server "<end-of-stoplist>\015\012";
+		close SFH;
+		if($configfile)
+		{
+			open CFFH, '<', "$usr_dir/$options{config}" or die "can't open config file $usr_dir/$options{config} for reading : $!";
+			printf Server "<start-of-config>\015\012";
+			while (defined ($line = <CFFH>))
+			{
+				 printf Server "<cfg>:$line\015\012";
+			}
+			printf Server "<end-of-config>\015\012";
+			close CFFH;
+		}
+
+		print Server "<End>\0012\n";
+		print "<p><a href=\"http://$hostname/allwords/allwords.html\">Start Over</a></p>";
     }
 
-
+	
 sub writetoCGI
 {
 my $output=shift;
@@ -292,26 +398,25 @@ sub getFileName
 	$filename= substr $path, $result+1;
 	return $filename;
 }
+
+
 =head1 NAME
 
-allwords.cgi - [Web] CGI script implementing a portion of a web interface for WordNet::SenseRelate::AllWords
-
-=head1 SYNOPSIS
-
-	read input data 
-	connect to allwords_server.pl
-	send input data to the server
-	Get results from the server
-	Display results
+allwords.cgi - [Web] CGI script implementing a portion of a web interface
+for WordNet::SenseRelate::AllWords
 
 =head1 DESCRIPTION
 
 This script works in conjunction with allwords_server.pl to
 provide a web interface for L<WordNet::SenseRelate::AllWords>. The html 
 file, htdocs/allwords/allwords.html posts the data entered by the user 
-to this script. The data is written in a file and sent to the server line by line.
-Then it waits for the server to send results. After receiving results, 
-they are displayed to the user.
+to this script. The input data, in particular, the input context, stoplist
+file, config file and various disambiguation options are written in files 
+and sent to the server line by line. Then it waits for the server to send 
+results. After receiving results, they are displayed to the user. Moreover 
+the user_data along with the tarball of result files is moved to 
+htdocs/allwords/user_data directory, so that the user can refer to the results 
+later.
 
 =head1 AUTHORS
 
@@ -322,7 +427,7 @@ they are displayed to the user.
  tpederse at d.umn.edu
 
 This document last modified by : 
-$Id: allwords.cgi,v 1.17 2008/06/16 01:33:37 kvarada Exp $
+$Id: allwords.cgi,v 1.26 2008/11/06 02:31:48 kvarada Exp $
 
 =head1 SEE ALSO
 

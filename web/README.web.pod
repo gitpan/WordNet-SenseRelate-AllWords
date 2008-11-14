@@ -1,15 +1,42 @@
 =head1 NAME
 
-README.web - [Web] README file for Web interface of WordNet::SenseRelate::AllWords
-
-=head1 SYNOPSIS
-
-This document briefly describes the web interface of  
-L<WordNet::SenseRelate::AllWords>. The Web interface allows user to 
-enter a sentence along with different options, reads the data entered 
-by the user, calls appropriate AllWords.pm methods and displays results.
+README.web - [Web] README file for Web interface of 
+WordNet::SenseRelate::AllWords
 
 =head1 DESCRIPTION
+
+The web interface employs a client-server model.  The two CGI scripts,
+allwords.cgi and version.cgi, are the clients that request information
+to the allwords server, allwords_server.pl. 
+
+The allwords server is a network interface to the 
+WordNet::SenseRelate::AllWords. The allwords server file, allwords_server.pl
+interacts with AllWords.pm for the disambiguation results. It loads all the
+modules required by SenseRelate::AllWords and listens for network requests for 
+disambiguation information. A client can then connect to the allwords server
+and request disambiguation information. This information, if available, will 
+be returned by the allwords server to the client over the netwrok connection.
+
+In the web interface, allwords.cgi and version.cgi are the clients that
+connect to the allwords server and request either for disambiguation 
+information or version information. The information retrieved by these two 
+clients from the server is then presented via web pages to the end-user. 
+Thus, allwords.cgi and version.cgi create web pages for the end-user, using
+information obtained from the backend allwords server(allwords_server.pl). 
+Here is a block schematic:
+
+
+[AllWords Server] <-----> [Web Server] <-----> [End User]
+(allwords_server.pl)      (allwords.cgi)        (browser)
+                             (version.cgi)
+
+
+The allwords server can be run on the same machine on which your
+web server is running or it can be on a different machine.  Running
+allwords_server.pl on a different machine than the webserver can be
+useful if you have only limited control over the webserver machine (for
+example, you might not be able to install WordNet on the webserver
+machine).
 
 =head2 Software Dependencies
 
@@ -17,10 +44,19 @@ The following Modules are required by WordNet::SenseRelate::AllWords Web
 interface :
 
 =over 
-=item *  WordNet::Similarity
-=item *  WordNet::Tools
-=item *  WordNet::SenseRelate::AllWords
+
+=item WordNet::QueryData
+
+=item WordNet::Tools
+
+=item WordNet::Similarity
+
+=item WordNet::SenseRelate::AllWords
+
+=item IO::Socket
+
 =back
+
 
 All of these modules are available at CPAN. Please refer to INSTALL.pod 
 of WordNet-SenseRelate-AllWords for information about installing 
@@ -31,43 +67,63 @@ dependencies.
 This web interface distribution contains two 
 directories: 
 
- 1) cgi-bin/allwords 
- 2) htdocs/allwords 
+=over
 
-The cgi-bin/allwords directory contains the following three Perl scripts:
- 
- 1) allwords.cgi
- 2) allwords_server.pl
- 3) version.cgi
+=item 1) web/cgi-bin/allwords
 
-The interface employs a client-server model.  The two CGI scripts,
-allwords.cgi and version.cgi, are the clients of the server 
-allwords_server.pl. It is allwords_server.pl that actually interacts 
+=item 2) web/htdocs/allwords 
+
+=back
+
+The web/cgi-bin/allwords directory contains the following three scripts:
+
+=over
+
+=item 1) allwords.cgi
+
+=item 2) allwords_server.pl
+
+=item 3) version.cgi
+
+=back
+
+The two CGI scripts, allwords.cgi and version.cgi, are the clients of the 
+server allwords_server.pl. It is allwords_server.pl that actually interacts 
 with AllWords.pm.
 
-The cgi-bin/allwords directory also contains the following directory, 
+The web/cgi-bin/allwords directory also contains the following directory, 
 which is used for temporary storage of user input: 
 
- 1) user_data/ 
+=over
 
-The htdocs/allwords directory contains one html script and user_data 
+=item web/cgi-bin/allwords/user_data/ 
+
+=back
+
+For every disambiguation request, a unique user directory is created here, 
+where we store all information about the input files and the result files. 
+
+The web/htdocs/allwords directory contains one html script and user_data 
 directory: 
 
- 1) allwords.html
- 2) user_data/
+=over
+
+=item 1) allwords.html
+
+=item 2) user_data/
+
+=back
 
 allwords.html displays a user interface to the user and posts data to 
-allwords.cgi or version.cgi. After all processing is done, the contents 
-of cgi-bin/allwords/user_data directory are moved to  
-htdocs/allwords/user_data directory so that the user can browse his 
-input files and results.  
+allwords.cgi or version.cgi. After all processing is done, the use directory 
+in cgi-bin/allwords/user_data directory is moved to htdocs/allwords/user_data
+directory so that the user can browse his input files and results.  
 
-Note that the server, allwords_server.pl should be run on the same 
-machine on which your web server is running.
-
-Please refer to the documentation of allwords_server.pl, allword.cgi and  
-version.cgi for more details about how server-client communicate with 
-each other.  
+The allwords server can run on a different machine, from where your web server
+is running. However, the user data will be stored on the machine where your 
+web server is running. Please refer the documentation of allwords_server.pl,
+allword.cgi and version.cgi for more details about how server-client 
+communicate with each other.  
 
 =head1 OPTIONS
 
@@ -78,7 +134,8 @@ wsd.pl options.
 
 =head2 Input Text 
 
-The sentence entered in the web interface can be one of the three formats below.
+You can either upload a file or enter your text in the text area on the 
+web interface. The text can be one of the three formats below.
 
 =over 
 
@@ -92,10 +149,6 @@ tagged : The/DT star/NN married/VBD the/DT director/NN
 wntagged : The star#n married#v the director#n
 
 =back
-   
-wsd.pl supports one more format, parsed format, which is NOT supported 
-in the web interface. We plan to eliminate 'parsed' and 'raw' formats 
-and replace them with 'plain' format in future release.    
 
 =head2 Stoplist
 
@@ -108,6 +161,9 @@ However, if the user uploads their own stoplist and also checks the box
 for using the default stoplist, the user's stoplist will override the 
 default and be used.
 
+You can find your default stoplist in this location
+web/cgi-bin/allwords/user_data/default-stoplist-raw.txt
+
 =head2 Trace
 
 The trace option allows the user to select multiple trace levels at the 
@@ -115,25 +171,6 @@ same time. The sum of all trace values is sent to AllWords.pm while
 creating AllWords object. The trace can be viewed by clicking on 'See 
 Trace output'. It is also available in result files as trace.txt for 
 future reference.          
-
-The following options of wsd.pl are not supported in the web interface
-
-=over
-
-=item 1.
-uploading context as a file
-
-=item 2.
-parsed format.  
-This option will eventually be combined with raw
-
-=item 3.
-uploading config file
-
-=item 4.
-uploading compounds file
-
-=back
 
 =head1 AUTHORS
 
@@ -144,11 +181,14 @@ uploading compounds file
  tpederse at d.umn.edu
 
 This document last modified by : 
-$Id: README.web.pod,v 1.7 2008/05/30 00:44:40 tpederse Exp $ 
+$Id: README.web.pod,v 1.11 2008/11/14 05:48:30 tpederse Exp $ 
 
 =head1 BUGS
 
-Sometimes correct messages are not displayed because currently, the web server handles the error messages which are supposed to be handled by AllWords.pm
+If you give mal formatted config file, the error handling is not
+properly. Your server won't die. You will see the error message
+where allwords_server.pl is running. However, no proper error message
+will be shown to the end user. 
 
 =head1 SEE ALSO
 

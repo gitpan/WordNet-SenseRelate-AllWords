@@ -9,29 +9,26 @@ OVERVIEW
     database as it's sense inventory.
 
 SYNOPSIS
-        use WordNet::QueryData;
         use WordNet::SenseRelate::AllWords;
-        use WordNet::Tools; 
+        use WordNet::QueryData;
+        use WordNet::Tools;
 
-        my $qd = WordNet::QueryData::AllWords->new;
-        my $wntools = WordNet::Tools->new;
+        my $qd = WordNet::QueryData->new;
+        my $wntools = WordNet::Tools->new($qd);
     
         my %options = (wordnet => $qd,
                        wntools => $wntools,
                        measure => 'WordNet::Similarity::lesk'
                        );
 
-        my $wsd = WordNet::SenseRelate::AllWords->new (%options);
-
-        my @words = qw/when in the course of human events/;
-
-        my @res = $wsd->disambiguate (window => 2, 
-                                      tagged => 0, 
+       my $obj = WordNet::SenseRelate::AllWords->new(%options);
+       my @context = qw/when in the course of human events/;
+       my @res = $obj->disambiguate (window => 3,
                                       scheme => 'normal',
-                                      context => [@words],
-                                      );
+                                      tagged => 0,
+                                      context => [@context]);
                                     
-        print join (' ', @res), "\n";
+       print join (' ', @res), "\n";
    
 CONTENTS
     When the distribution is unpacked, several subdirectories are created:
@@ -300,17 +297,26 @@ DESCRIPTION
     programs to perform word sense disambiguation.
 
    Example
-      use WordNet::SenseRelate::AllWords;
-      use WordNet::QueryData;
-      use WordNet::Tools;   
-      my $qd = WordNet::QueryData->new;
-      my $wntools = WordNet::Tools->new;
-      my $wsd = WordNet::SenseRelate::AllWords->new (wordnet => $qd,
-                                           wntools => $wntools,
-                                           measure => 'WordNet::Similarity::lesk');
-      my @words = qw/this is a test/;
-      my @results = $wsd->disambiguate (context => [@words]);
-      print join (' ', @results), "\n";
+        use WordNet::SenseRelate::AllWords;
+        use WordNet::QueryData;
+        use WordNet::Tools;
+
+        my $qd = WordNet::QueryData->new;
+        my $wntools = WordNet::Tools->new($qd);
+    
+        my %options = (wordnet => $qd,
+                       wntools => $wntools,
+                       measure => 'WordNet::Similarity::lesk'
+                       );
+
+       my $obj = WordNet::SenseRelate::AllWords->new(%options);
+       my @context = qw/when in the course of human events/;
+       my @res = $obj->disambiguate (window => 3,
+                                      scheme => 'normal',
+                                      tagged => 0,
+                                      context => [@context]);
+                                    
+       print join (' ', @res), "\n";
 
     The context parameter to disambiguate() specifies a set of words to
     disambiguate. The function treats the context as one sentence. To
@@ -363,7 +369,7 @@ AUTHORS
 
     Last updated by :
 
-    # $Id: README,v 1.18 2008/09/14 23:25:15 kvarada Exp $
+    # $Id: README,v 1.19 2008/09/15 23:42:05 kvarada Exp $
 
 COPYRIGHT
     Copyright (C) 2004-2008 by Ted Pedersen, Varada Kolhatkar, Jason

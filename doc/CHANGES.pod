@@ -6,13 +6,48 @@ CHANGES - Revision history for WordNet::SenseRelate::AllWords
 
 =over 
 
+=item 0.12
+
+Date : November 03, 2008 
+
+=over
+
+=item 1)
+
+Fixed client server model for the web interface. The allwords
+server can run on a different machine, from where your web 
+server is running.
+
+=item 2)
+
+User data is now stored on the client machine so that it is 
+easily accessible to the user.
+
+=item 3)
+
+Added a mandatory --logfile parameter alomg with other optional 
+parameters to allwords_server.pl
+
+=item 4)
+
+Removed --outfile option from wsd.pl and added --glosses options 
+to display glosses
+
+=item 5) 
+
+Moved default-stoplist-raw.txt from 
+WordNet-SenseRelate-AllWords/web/cgi-bin/allwords to
+/WordNet-SenseRelate-AllWords/web/cgi-bin/allwords/user_data
+
+=back
+
 =item 0.11
 
 Date : June 17, 2008 
 
 =over
 
-=item
+=item 1)
 
 Removed compounding logic from AllWords.pm. Compounding is now
 done using WordNet::Tools compoundify. The clients, wsd.pl and 
@@ -20,17 +55,17 @@ allwords_server.pl don't call compoundify any more. They creat
 WordNet::Tools object and pass it as a parameter while creating 
 AllWords object.
 
-=item
+=item 2)
 
 Moved sentence splitter from wsd.pl to a util program, 
 sentence_split.pl. All input formats will now assume that input 
 is one sentence per line, one line per sentence. 
 
-=item
+=item 3)
 
 Removed parsed format test case from t/wsd.t
 
-=item
+=item 4)
 
 Context was considered as a single line if more than one line 
 was entered in the textarea on the web interface.
@@ -46,7 +81,7 @@ Date : May 29, 2008
 
 =over
 
-=item
+=item 1)
 
 Added proper error messages for the words which are ignored 
 during disambiguation. A suffix is attached to the word in 
@@ -55,22 +90,22 @@ For example, the word 'the' is not defined in WordNet and
 hence is ignored. We attach the#ND to indicate that this 
 word is not defined in WordNet
 
-=item
+=item 2)
 
 Added context file and config file option to the Web 
 interface
 
-=item
+=item 3)
 
 Removed --compounds option from wsd.pl as we decided to 
 use centralized compoundify module WordNet::Tools
 
-=item
+=item 4)
 
 Added compoundify in wsd.pl. This is done using the 
 centralized WordNet::Tools module
 
-=item
+=item 5)
 
 Removed WordNet::SenseRelate dependency of the Web interface. 
 Now compoundifying is done using WordNet::Tools
@@ -83,7 +118,7 @@ Date : April 10, 2008 (all changes by TDP)
 
 =over
 
-=item
+=item 1)
 
 Modified test cases further to check for WordNet version using 
 WordNet::Tools. Changes introduced in 0.08 testing were based on 
@@ -92,7 +127,7 @@ if we don't find version 2.0, 2.1, or 3.0, and introduce version
 specific tests within those as needed (if results change from
 one version of WordNet to the next). 
 
-=item
+=item 2)
 
 Added reference to Jason Michelizzi's MS thesis, which gives many 
 details about the AllWords approach, plus experimental results
@@ -105,21 +140,21 @@ Date : March 20, 2008 (all changes by TDP)
 
 =over
 
-=item 
+=item 1)
 
 Fixed bug in AllWords.pm that caused disambiguate to fail when window 
 not specified. we now default to window size 3.
 
-=item 
+=item 2)
 
 Fixed synopsis in AllWords.pm to provide a cut and paste program that 
 should run
 
-=item
+=item 3)
 
 Modified Makefile.PL to allow for use of 'make dist' and create META.yml
 
-=item
+=item 4)
 
 Changed release procedure, now using 'make dist' in order to avoid CVS 
 export, and also create a directory that unpacks with a version number.
@@ -132,23 +167,23 @@ Date : March 17, 2008
 
 =over
 
-=item 
+=item 1) 
 
 Added web interface support for AllWords (see /web for details) (vk)
 
-=item
+=item 2)
 
 Updated version information in AllWords.pm to 0.07 (vk)
 
-=item 
+=item 3)
 
 changed Changes file to CHANGES.pod (tdp)
 
-=item 
+=item 4)
 
 added INSTALL.pod to /web (tdp)
 
-=item 
+=item 5)
 	
 updated version, copyright, and author info in README.pod (tdp)
 
@@ -322,9 +357,10 @@ original version; created by h2xs 1.23 with options
  tpederse at d.umn.edu
 
 This document last modified by :
-$Id: CHANGES.pod,v 1.9 2008/06/17 16:48:51 kvarada Exp $
+$Id: CHANGES.pod,v 1.11 2008/11/05 04:50:01 kvarada Exp $
 
 =head1 SEE ALSO
+README, INSTALL, TODO
 
 =head1 COPYRIGHT AND LICENSE
 

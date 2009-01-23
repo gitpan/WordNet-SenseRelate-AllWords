@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 
-# $Id: wsd.pl,v 1.22 2008/10/18 19:21:52 kvarada Exp $
+# $Id: wsd.pl,v 1.25 2009/01/22 14:37:55 kvarada Exp $
 
 use strict;
 use warnings;
@@ -17,7 +17,6 @@ our $stoplist;
 our $window = 3;
 our $contextScore = 0;
 our $pairScore = 0;
-our $silent;
 our $glosses;
 our $trace;
 our $help;
@@ -39,8 +38,7 @@ my $ok = GetOptions ('type|measure=s' => \$measure,
 		     'contextScore=f' => \$contextScore,
 		     'scheme=s' => \$scheme,
 		     forcepos => \$forcepos,
-		     silent => \$silent,
-			 glosses => \$glosses,
+		     glosses => \$glosses,
 		     'trace=i' => \$trace,
 		     help => \$help,
 		     version => \$version,
@@ -56,13 +54,12 @@ if ($help) {
 
 if ($version) {
     print "wsd.pl - assign a sense to all words in a context\n";
-    print 'Last modified by : $Id: wsd.pl,v 1.22 2008/10/18 19:21:52 kvarada Exp $';
+    print 'Last modified by : $Id: wsd.pl,v 1.25 2009/01/22 14:37:55 kvarada Exp $';
     print "\n";
     exit;
 }
 
 unless (defined $contextf) {
-    print STDERR "The --context argument is required. This is the text to be disambiguated\n";
     showUsage ();
     exit 1;
 }
@@ -71,14 +68,12 @@ unless ($format
         and (($format eq 'raw') or 
 	     ($format eq 'tagged') or 
 	     ($format eq 'wntagged'))) {
-    print STDERR "The --format argument is required. This is the type of text to be disambiguated.\n";
     showUsage ();
     exit 1;
 }
 
 unless ($scheme and (($scheme eq 'normal') or ($scheme eq 'random')
 		     or ($scheme eq 'sense1') or ($scheme eq 'fixed'))) {
-    print STDERR "The --scheme argument is required.\n";
     showUsage ();
     exit 1;
 }
@@ -206,7 +201,7 @@ foreach my $sentence (@sentences) {
 			}
 			elsif($val =~ /\#ND/) 
 			{
-				print STDOUT "\nval : not in WordNet\n";
+				print STDOUT "\n$val : not in WordNet\n";
 			}
 			elsif($val =~ /\#NR/)
 			{
@@ -289,7 +284,7 @@ sub showUsage
     print "              [--type MEASURE] [--config FILE] \n";
     print "              [--stoplist file] [--window INT] [--contextScore NUM]\n";
     print "              [--pairScore NUM] [--outfile FILE] [--trace INT] \n";
-	print "              [--glosses][--silent]\n";
+	print "              [--glosses][--forcepos] \n";
     print "              | {--help | --version}\n";
 
     if ($long) {
@@ -313,7 +308,6 @@ sub showUsage
 	print "\t--trace INT          set trace levels. greater values show more\n";
 	print "\t                       detail. may be summed to combine output. \n";
 	print "\t--glosses            show glosses of each disambiguated word\n";
-	print "\t--silent             run silently; shows only final output\n";
         print "\t--forcepos           force all words in window of context\n";
         print "\t                       to be same pos as target (pos coercion)\n";
 	print "\t                       are assigned\n";
@@ -333,7 +327,7 @@ wsd.pl - automatically assign a meaning to every word in a text
  wsd.pl --context FILE --format FORMAT [--scheme SCHEME] [--type MEASURE] 
            [--config FILE] [--stoplist FILE] 
            [--window INT] [--contextScore NUM] [--pairScore NUM] 
-           [--outfile FILE] [--trace INT] [--silent] [--forcepos] 
+           [--outfile FILE] [--trace INT] [--forcepos] 
 		| --help | --version
 
 =head1 DESCRIPTION
@@ -399,7 +393,7 @@ The first sense is more likely than the second, the second is more likely
 than the third, etc. Random selects one of the possible senses of the 
 target word randomly. 
 
-=item --measure=B<MEAURE>
+=item --type=B<MEAURE>
 
 The relatedness measure to be used.  The default is WordNet::Similarity::lesk.
 
@@ -474,11 +468,6 @@ to see the combined traces.  The trace levels are:
     When not used with 4 or 8, this has no effect.
 
  32 Display traces from the semantic relatedness module.
-
-=item --silent
-
-Silent mode.  No information about progress, etc. is printed.  Just the
-final output.
 
 =item --forcepos
 

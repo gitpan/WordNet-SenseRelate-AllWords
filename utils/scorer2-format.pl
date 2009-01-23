@@ -2,11 +2,32 @@
 
 use strict;
 use warnings;
+use Getopt::Long;
 
-my $infile = shift;
+my $infile;
+my $help;
+my $version;
+
+my $ok = GetOptions (
+		     'file=s' => \$infile,
+		     help => \$help,
+		     version => \$version,
+		     );
+$ok or exit 1;
+
+if ($help) {
+    showUsage ("Long");
+    exit;
+}
+
+if ($version) {
+    print "scorer2-format.pl - Reformat wsd.pl output for use by the scorer2 evaluation program\n";
+    print 'Last modified by : $Id: scorer2-format.pl,v 1.7 2009/01/22 14:37:08 kvarada Exp $';
+    print "\n";
+    exit;
+}
 
 unless (defined $infile) {
-    print STDERR "No input file specified\n";
     showUsage();
     exit 1;
 }
@@ -23,7 +44,7 @@ while (my $line = <FH>) {
 	$id++;
 	
 	# check to see if there is a sense number assigned
-	if ($s) {
+	if ($s !~ m/NR/ && $s !~ m/ND/ ) {
 	    print $w, '.', $p, ' ', $id, ' ', $s, "\n";
 	}
 	else {
@@ -35,7 +56,16 @@ close FH;
 
 sub showUsage
 {
-    print "Usage: scorer2-format.pl INFILE1 [INFILE2 ...]\n";
+    my $long = shift;
+    print "Usage: scorer2-format.pl --file FILE  | {--help | --version}\n";
+
+    if ($long) 
+    {
+	print "Options:\n";
+       print "\t--file               wsd.pl output formatted file\n";
+	print "\t--help               show this help message\n";
+	print "\t--version            show version information\n";
+    }
 }
 
 __END__
@@ -46,18 +76,15 @@ scorer2-format.pl - Reformat wsd.pl output for use by the scorer2 evaluation pro
 
 =head1 SYNOPSIS
 
- scorer2-format.pl INFILE1 [INFILE2 ...]
+ scorer2-format.pl INFILE
 
 =head1 DESCRIPTION
 
-This script reads one or more files from the command line and reformats
-them so that they can be scored using the Senseval scorer2 program.  The
+This script reads file from the command line and reformats
+it so that it can be scored using the Senseval scorer2 program.  The
 input format is that of the wsd.pl program that is distributed with
-WordNet-SenseRelate.  The output is printed to the standard output.
-
-Note: be sure to run wsd.pl with the '--silent' option.  If this is not
-done, wsd.pl will print configuration information that will cause this
-script to fail.
+WordNet-SenseRelate.  The output is printed to the standard output and the
+configuration information is printed to the standard error. 
 
 =head1 scorer2
 
@@ -70,8 +97,18 @@ L<http://www.senseval.org/senseval3/scoring>
 
  Jason Michelizzi
 
+ Varada Kolhatkar, University of Minnesota, Duluth
+ <kolha002 at d.umn.edu>
+
  Ted Pedersen, University of Minnesota, Duluth
  <tpederse at d.umn.edu>
+
+This document last modified by : 
+$Id: scorer2-format.pl,v 1.7 2009/01/22 14:37:08 kvarada Exp $
+
+=head1 SEE ALSO
+
+ L<semcor-reformat.pl> L<wsd-experiments.pl> L<scorer2-sort.pl>
 
 =head1 COPYRIGHT 
 

@@ -14,8 +14,7 @@ SYNOPSIS
         use WordNet::Tools;
 
         my $qd = WordNet::QueryData->new;
-        my $wntools = WordNet::Tools->new($qd);
-    
+        my $wntools = WordNet::Tools->new($qd);    
         my %options = (wordnet => $qd,
                        wntools => $wntools,
                        measure => 'WordNet::Similarity::lesk'
@@ -26,10 +25,9 @@ SYNOPSIS
        my @res = $obj->disambiguate (window => 3,
                                       scheme => 'normal',
                                       tagged => 0,
-                                      context => [@context]);
-                                    
+                                      context => [@context]);                                    
        print join (' ', @res), "\n";
-   
+
 CONTENTS
     When the distribution is unpacked, several subdirectories are created:
 
@@ -60,6 +58,23 @@ CONTENTS
         scorer2-format.pl
             This script will reformat the output of wsd.pl so that it can be
             used as input to the Senseval scorer2 program.
+
+        scorer2-sort.pl
+            This script will sort the output of scorer2-format.pl so that it
+            can be used as input to the Senseval scorer2 program.
+
+        wsd-experiments.pl
+            This script will call the above scripts and will run wsd
+            experiments.
+
+        sentence_split.pl
+            This script splits text into sentences. We expect that the input
+            format to allwords should be one sentence per line, one line per
+            sentence. If your text is not in this format, you can use this
+            script to split the text into sentences. Note that this script
+            is not included anywhere and if your text is not in the required
+            format, you should call this script explicitly before using
+            wsd.pl or the web interface.
 
         Each of these scripts has detailed documentation. Run perldoc on a
         file to see the detailed documentation; for example, 'perldoc
@@ -303,19 +318,16 @@ DESCRIPTION
 
         my $qd = WordNet::QueryData->new;
         my $wntools = WordNet::Tools->new($qd);
-    
         my %options = (wordnet => $qd,
                        wntools => $wntools,
                        measure => 'WordNet::Similarity::lesk'
                        );
-
        my $obj = WordNet::SenseRelate::AllWords->new(%options);
        my @context = qw/when in the course of human events/;
        my @res = $obj->disambiguate (window => 3,
                                       scheme => 'normal',
                                       tagged => 0,
-                                      context => [@context]);
-                                    
+                                      context => [@context]);               
        print join (' ', @res), "\n";
 
     The context parameter to disambiguate() specifies a set of words to
@@ -369,7 +381,7 @@ AUTHORS
 
     Last updated by :
 
-    # $Id: README,v 1.19 2008/09/15 23:42:05 kvarada Exp $
+    # $Id: README,v 1.21 2009/01/19 16:40:16 kvarada Exp $
 
 COPYRIGHT
     Copyright (C) 2004-2008 by Ted Pedersen, Varada Kolhatkar, Jason

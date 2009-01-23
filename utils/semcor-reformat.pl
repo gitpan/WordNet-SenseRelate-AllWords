@@ -10,16 +10,29 @@ use WordNet::QueryData;
 our $key = 0;
 our $semcor_dir;
 our $file;
-my $res = GetOptions (key => \$key, "semcor=s" => \$semcor_dir,
-		      "file" => \$file);
+our $version;
+our $help;
 
+my $res = GetOptions (key => \$key, "semcor=s" => \$semcor_dir,
+		      "file" => \$file, version => \$version, help => \$help );
 unless ($res) {
     showUsage();
     exit 1;
 }
 
+if ($help) {
+    showUsage("Long");
+    exit;
+}
+
+if ($version) {
+    print "semcor-reformat.pl - Reformat SemCor sense tagged files for use by wsd.pl\n";
+    print 'Last modified by : $Id: semcor-reformat.pl,v 1.15 2009/01/22 14:38:30 kvarada Exp $';
+    print "\n";
+    exit;
+}
+
 unless (defined $semcor_dir or defined $file) {
-    print STDERR "No location for input files was given\n";
     showUsage();
     exit 2;
 }
@@ -49,7 +62,7 @@ my %posLetter = (1 => 'n',
 		 2 => 'v',
 		 3 => 'a',
 		 4 => 'r',
-		 5 => 's');
+		 5 => 'a');
 
 my %posMap = (JJ =>   'a',
 	      OD =>   'a',
@@ -236,6 +249,7 @@ sub punc_handler
 sub wf_handler
 {
     my $close_tag = shift;
+    my $cnt=0;
     return if $close_tag;
 
     my %attrs = @_;
@@ -243,7 +257,7 @@ sub wf_handler
     return unless $attrs{cmd} eq 'done';
     return unless defined $attrs{lemma};
     warn "no pos for $." unless $attrs{pos};
-
+	
     return if $attrs{wnsn} eq '0'; # drop words that wordnet doesn't have
 
     if (index ($attrs{wnsn}, ';') < $[) {
@@ -268,6 +282,14 @@ sub wf_handler
     if (scalar @wps < 1) {
 	return; # no valid senses
     }
+
+    $wps[0]->[0]=lc($wps[0]->[0]);
+#   replacing .s with .a. Treating adjective satellite as simple adjectives
+
+    if($wps[0]->[1] eq "s")
+	{
+	    $wps[0]->[1] = "a";
+	}
 
     if ($key) {
 	#print $context_filename, '.', $paragraph_number, '.', $sentence_number;
@@ -359,13 +381,23 @@ sub getWPS
 
 sub showUsage
 {
+   my $long = shift;
+   print "Usage: semcor-reformat.pl {--semcor DIR | --file FILE [FILE ...]} [--key]\n";
+   print "                          | {--help | --version}\n";
+	
+
+    if ($long) 
+    {
     print <<'EOU';
-semcor-reformat.pl {--semcor-dir DIR | --file FILE [FILE ...]} [--key]
 Options:
-   --semcor-dir     name of directory containing Semcor
+   --semcor         name of directory containing Semcor
    --file           one or more semcor-formatted files
    --key            generate a key for scoring purposes from the input
+   --help           show this help message
+   --version        show version information
+
 EOU
+}
 }
 
 
@@ -377,11 +409,11 @@ semcor-reformat.pl - Reformat SemCor sense tagged files for use by wsd.pl
 
 =head1 SYNOPSIS
 
- semcor-reformat.pl {--semcor-dir DIR | --file FILE [FILE ...]} [--key] 
+ semcor-reformat.pl {--semcor DIR | --file FILE [FILE ...]} [--key] 
 
 =head1 EXAMPLE
 
- semcor-reformat.pl --semcor-dir ~/semcor2.0
+ semcor-reformat.pl --semcor ~/semcor2.0
 
 =head1 DESCRIPTION
 
@@ -406,7 +438,7 @@ head1 OPTIONS
 
 =over
 
-=item --semcor-dir=B<DIRECTORY>
+=item --semcor=B<DIRECTORY>
 
 The location of the SemCor directory.  This directory will contain
 several sub-directories, including 'brown1' and 'brown2'.  Do
@@ -440,8 +472,19 @@ for scorer2-format.pl for more information.
 
  Jason Michelizzi
 
+ Varada Kolhatkar, University of Minnesota, Duluth
+ kolha002 at d.umn.edu
+
  Ted Pedersen, University of Minnesota, Duluth
  tpederse at d.umn.edu
+
+This document last modified by : 
+$Id: semcor-reformat.pl,v 1.15 2009/01/22 14:38:30 kvarada Exp $
+
+=head1 SEE ALSO
+
+ L<wsd-experiments.pl> L<scorer2-format.pl> L<scorer2-sort.pl>
+
 
 =head1 COPYRIGHT AND LICENSE
 

@@ -6,7 +6,7 @@ SYNOPSIS
     driver, and web interface.
 
 DESCRIPTION
-  For version 0.13
+  For version 0.14
     1)  Fix config file issue. If the config file is malformed, you will see
         the error message where allwords_server.pl is running. However, no
         proper error message will be shown to the end user.

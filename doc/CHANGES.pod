@@ -6,6 +6,29 @@ CHANGES - Revision history for WordNet::SenseRelate::AllWords
 
 =over 
 
+=item 0.13
+
+Date : January 22, 2009 
+
+=over
+
+=item 1)
+
+Setup for wsd.pl experiments. Added 2 scripts scorer2-sort.pl and 
+wsd-experiments.pl. scorer2-sort.pl sorts the output of scorer2-format.pl 
+so that it can be used as input to the Senseval scorer2 program.
+wsd-experiments.pl runs wsd experiments. 
+
+=item 2)
+
+Documentation changes in wsd.pl, scorer2-format.pl, semcor-reformat.pl.
+
+=item 3)
+
+Makefile changes to install newly added perl scripts. 
+
+=back
+
 =item 0.12
 
 Date : November 03, 2008 
@@ -70,8 +93,8 @@ Removed parsed format test case from t/wsd.t
 Context was considered as a single line if more than one line 
 was entered in the textarea on the web interface.
 Now the input is considered as one sentence per line, one line 
-per sentence. 
-	
+per sentence.
+
 =back
 
 
@@ -109,7 +132,7 @@ centralized WordNet::Tools module
 
 Removed WordNet::SenseRelate dependency of the Web interface. 
 Now compoundifying is done using WordNet::Tools
-	
+
 =back
 
 =item 0.09
@@ -184,7 +207,7 @@ changed Changes file to CHANGES.pod (tdp)
 added INSTALL.pod to /web (tdp)
 
 =item 5)
-	
+
 updated version, copyright, and author info in README.pod (tdp)
 
 =back
@@ -195,7 +218,7 @@ Thu May 19 14:06:10 2005 (all changes by JM)
 
 =over
 
-=item 
+=item 1)
 
 added fixed mode
 
@@ -207,29 +230,29 @@ Mon May 02 16:12:36 2005 (all changes by JM)
 
 =over
 
-=item 
+=item 1)
 
 changed definition of context window to be total number of words
 
-=item 
+=item 2)
 
 cleaned up errors in documentation
 
-=item 
+=item 3)
 
 renamed reformat-for-senseval.pl as scorer2-format.pl
 
-=item 
+=item 4)
 
 added command-line help to scorer2-format.pl and semcor-reformat.pl and expanded documentation
 
-=item 
-	
+=item 5)
+
 changed the compound-finding function so that only collocations of 
 length MAX_COMPOUND_LENGTH or less are considered.           
 MAX_COMPOUND_LENGTH is a constant defined in AllWords.pm.
 
-=item 
+=item 6)
 
 added new wntagged format
 
@@ -241,52 +264,52 @@ Tue Apr 12 10:40:48 2005 (all changes by JM)
 
 =over
 
-=item 
+=item 1)
 
 fixed serious bug that often prevented higher numbered senses of target 
 words from being considered
 
-=item 
+=item 2)
 
 fixed errors in wsd.pl when --format is omitted
 
-=item 
+=item 3)
 
 added diagnostic messages when stoplist is malformed
 
-=item 
+=item 4)
 
 fixed bug in windowing that prevented window from expanding under 
 certain circumstances
 
-=item 
+=item 5)
 
 added new traces levels for displaying semantic relatedness scores and 
 making ouput of zero values optional
 
-=item 
-	  
+=item 6)
+
 fixed bug where sense1 and random schemes would fail when used 
 with a stoplist or tagged text 
 
-=item 
+=item 7)
 
 clarified description of window in documentation
 
-=item 
+=item 8)
 
 added sample stoplist
 
-=item 
+=item 9)
 
 suppress irrelevant configuration information when wsd.pl is run under 
 sense1 or random
 
-=item 
+=item 10)
 
 updated test scripts to reflect recent changes
 
-=item 
+=item 11)
 
 renamed as WordNet::SenseRelate::AllWords
 
@@ -298,20 +321,20 @@ Fri Mar 11 15:25:18 2005 (all changes by JM)
 
 =over
 
-=item 
+=item 1)
 
 added scripts for converting semcor files and formatting the output for 
 Senseval
 
-=item 
+=item 2)
 
 added another test script
 
-=item 
+=item 3)
 
 changed the input format(s) to wsd.pl
 
-=item 
+=item 4)
 
 expanded documentation
 
@@ -323,11 +346,11 @@ Mon Jan 17 10:01:00 2005 (all changes by JM)
 
 =over
 
-=item 
+=item 1)
 
 added part of speech coercion option
 
-=item 
+=item 2)
 
 expanded discussions in README
 
@@ -339,7 +362,7 @@ Wed Nov  3 12:52:33 2004 (all changes by JM)
 
 =over
 
-=item 
+=item 1)
 
 original version; created by h2xs 1.23 with options 
 -n WordNet::SenseRelate -X -b 5.6.0
@@ -357,13 +380,12 @@ original version; created by h2xs 1.23 with options
  tpederse at d.umn.edu
 
 This document last modified by :
-$Id: CHANGES.pod,v 1.11 2008/11/05 04:50:01 kvarada Exp $
+$Id: CHANGES.pod,v 1.14 2009/01/23 02:26:30 kvarada Exp $
 
 =head1 SEE ALSO
 README, INSTALL, TODO
 
 =head1 COPYRIGHT AND LICENSE
-
 Copyright (c) 2008, Varada Kolhatkar, Ted Pedersen, Jason Michelizzi
 
 Permission is granted to copy, distribute and/or modify this document

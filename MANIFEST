@@ -22,8 +22,10 @@ t/WordNet-SenseRelate-AllWords.t
 t/wsd.t
 TODO
 utils/scorer2-format.pl
+utils/scorer2-sort.pl
 utils/semcor-reformat.pl
 utils/sentence_split.pl
+utils/wsd-experiments.pl
 utils/wsd.pl
 web/cgi-bin/allwords/allwords.cgi
 web/cgi-bin/allwords/allwords_server.pl

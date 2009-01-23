@@ -9,7 +9,7 @@ driver, and web interface.
 
 =head1 DESCRIPTION
 
-=head2 For version 0.13
+=head2 For version 0.14
 
 =over
 
@@ -17,7 +17,7 @@ driver, and web interface.
 
 Fix config file issue. If the config file is malformed, you will
 see the error message where allwords_server.pl is running. However,
-no proper error message	will be shown to the end user.
+no proper error message will be shown to the end user.
 
 =item 2)
 
@@ -90,7 +90,7 @@ testing be confined to one file per module or program as it is now.
  tpederse at d.umn.edu
 
 This document last modified by : 
-$Id: TODO.pod,v 1.8 2008/11/04 14:48:37 kvarada Exp $ 
+$Id: TODO.pod,v 1.9 2009/01/19 16:04:11 kvarada Exp $ 
 
 =head1 SEE ALSO
 

@@ -67,6 +67,11 @@ CONTENTS
             This script will call the above scripts and will run wsd
             experiments.
 
+        allwords-scorer2.pl
+            This script is modeled after the senseval scorer2 C program
+            (http://www.senseval.org/senseval3/scoring) and will be used for
+            scoring.
+
         sentence_split.pl
             This script splits text into sentences. We expect that the input
             format to allwords should be one sentence per line, one line per
@@ -246,8 +251,8 @@ DESCRIPTION
    Usage
     wsd.pl --context FILE --format FORMAT [--scheme SCHEME] [--type MEASURE]
     [--config FILE] [--stoplist FILE] [--window INT] [--contextScore NUM]
-    [--pairScore NUM] [--outfile FILE] [--trace INT] [--silent] | --help |
-    --version
+    [--pairScore NUM] [--outfile FILE] [--trace INT] [--forcepos]
+    [--nocompoundify] | --help | --version
 
     The format option specifies one of the three different formats supported
     by wsd.pl. The three formats are:
@@ -381,7 +386,7 @@ AUTHORS
 
     Last updated by :
 
-    # $Id: README,v 1.21 2009/01/19 16:40:16 kvarada Exp $
+    # $Id: README,v 1.22 2009/02/13 15:52:29 kvarada Exp $
 
 COPYRIGHT
     Copyright (C) 2004-2008 by Ted Pedersen, Varada Kolhatkar, Jason

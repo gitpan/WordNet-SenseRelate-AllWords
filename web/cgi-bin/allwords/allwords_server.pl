@@ -28,10 +28,12 @@ my @context;
 my $contextfile="./user_data/tmp_client_input.txt";
 my $contextflag=0;
 my $stoplistflag=0;
-my $configflag=0;
 my $windowSize;
 my $format;
 my $scheme;
+my $i=0;
+my $j=0;
+
 
 # result variables
 my $status; # to store the status of system commands to create 
@@ -54,7 +56,7 @@ if ($help) {
 
 if ($version) {
     print "allwords_server.pl - WordNet::SenseRelate::AllWords web interface server\n";
-    print 'Last modified by : $Id: allwords_server.pl,v 1.31 2008/11/04 15:36:02 kvarada Exp $';
+    print 'Last modified by : $Id: allwords_server.pl,v 1.35 2009/02/13 16:37:59 kvarada Exp $';
     print "\n";
     exit;
 }
@@ -129,7 +131,6 @@ while ($client = $sock->accept()){
    $text="";
    $contextflag=0;
    $stoplistflag=0;
-   $configflag=0;
    while(defined ($line = <$client>))
    {	
 	chomp($line);
@@ -222,6 +223,12 @@ while ($client = $sock->accept()){
 	    }elsif ($line =~ /<pairScore>:/)
 	    {	
 			$options{pairScore} = $tokens[1];
+	    }elsif ($line =~ /<forcepos>:/)
+	    {	
+			$options{forcepos} = 1;
+	    }elsif ($line =~ /<nocompoundify>:/)
+	    {	
+			$options{nocompoundify} = 1;
 	    }elsif ($line =~ /<measure>:/)
 	    {	
 			$options{measure} = "WordNet::Similarity::"."$tokens[1]";
@@ -232,11 +239,7 @@ while ($client = $sock->accept()){
 	    }elsif ($line =~ /<stoplist>:/)
 	    {	
 			$options{stoplist} = "$usr_dir/"."$tokens[1]";
-	    }elsif ($line =~ /<config>:/)
-	    {	
-			$options{config} = "$usr_dir/"."$tokens[1]";
-	    }
-		elsif($line =~ /<start-of-stoplist>/)
+	    }elsif($line =~ /<start-of-stoplist>/)
 		{
 			$stoplistflag=1;
 			open (SFH, '>>', "$options{stoplist}") or die "Cannot open $options{stoplist} : $!";				
@@ -246,25 +249,10 @@ while ($client = $sock->accept()){
 			$stoplistflag=0;
 			close SFH;
 		}
-		elsif($stoplistflag == 1 && $line =~ /<stp>/)
+	    elsif($stoplistflag == 1 && $line =~ /<stp>/ && defined $tokens[1])
 	    {
 			print SFH $tokens[1];	
 			print SFH "\n";
-	    }
-		elsif($line =~ /<start-of-config>/)
-		{
-			$configflag=1;
-			open (CFFH, '>>', "$options{config}") or die "Cannot open $options{config} : $!";				
-		} 
-		elsif($line =~ /<end-of-config>/)
-		{
-			$configflag=0;
-			close CFFH;
-		}
-		elsif($configflag == 1 && $line =~ /<cfg>/)
-	    {
-			print CFFH $tokens[1];	
-			print CFFH "\n";
 	    }
 		elsif($line eq "<End>\0012")
 		{
@@ -324,10 +312,32 @@ foreach $temp (keys(%options))
 
 	print $client join (' ', @context), "\015\012";
 	print $client join (' ', @res), "\015\012";
-		foreach $val (@res)
-		{
-			chomp($val);
-			print LFH "\nWord after disambiguation => $val";
+	for($i=0,$j=0; $i<=$#res ; $i++,$j++)
+	{
+		   my $val;
+  		   my $tagindex=index($res[$i],"#");
+		   my $tag=substr $res[$i], $tagindex;
+		   
+		   if($format eq 'raw')
+		   {
+			 if($res[$i] =~ /\_/){
+				$val=$res[$i];
+				$j++;
+			 }else{
+				$val=$context[$j].$tag;
+			 }
+		   }
+		   elsif($format eq 'tagged')
+		   {
+			 my ($tw,$tt)= ( $context[$j] =~ /(\S+)\/(\S+)/);
+			 $val=$tw.$tag;
+		   }	
+  		   elsif($format eq 'wntagged')
+		   {
+			 my ($tw,$tt)= split /\#/, $context[$j];
+			 $val=$tw.$tag;
+		   }	
+
 			if($val =~ /\#o/ )
 			{
 				print LFH "\n$val : stopword\n";
@@ -375,14 +385,13 @@ foreach $temp (keys(%options))
 			}
 			else
 			{
-				my ($gloss) = $qd->querySense ($val, "glos");
+				my ($gloss) = $qd->querySense ($res[$i], "glos");
 				print LFH "\n$val : $gloss\n";
 				print RFH "\n$val : $gloss\n";
 				print $client "\n$val : $gloss\015\012";
 			}
-
+		
 		}
-	
 		if ($options{trace}) {
 				open TFH, '>', $tracefilename or print "Cannot open $tracefilename for writing: $!";
 				print TFH join (' ', @res), "\n";
@@ -396,7 +405,7 @@ foreach $temp (keys(%options))
 				close TFH;
 		}
 
-   }	
+   	}	
 		close RFH;
 		close($client);	
 	}
@@ -475,7 +484,7 @@ for each client.
  tpederse at d.umn.edu
 
 This document last modified by : 
-$Id: allwords_server.pl,v 1.31 2008/11/04 15:36:02 kvarada Exp $ 
+$Id: allwords_server.pl,v 1.35 2009/02/13 16:37:59 kvarada Exp $ 
 
 =head1 SEE ALSO
 

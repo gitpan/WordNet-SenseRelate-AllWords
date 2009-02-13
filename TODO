@@ -6,10 +6,12 @@ SYNOPSIS
     driver, and web interface.
 
 DESCRIPTION
-  For version 0.14
-    1)  Fix config file issue. If the config file is malformed, you will see
-        the error message where allwords_server.pl is running. However, no
-        proper error message will be shown to the end user.
+  For version 0.15
+    1)  Add config file option to the web interface so that it would be able
+        to handle the files specified in the configuration file ( for
+        example, stoplist file path specified in the configuration file).
+        This is not provided now because the client-server model of the web
+        interface makes it hard to handle such paths on the server machine.
 
     2)  Add logging for AllWords.pm. We log allwords_server.pl. However we
         don't log AllWords.pm, which makes it difficult for debugging if
@@ -61,8 +63,8 @@ AUTHORS
      Ted Pedersen, University of Minnesota, Duluth
      tpederse at d.umn.edu
 
-    This document last modified by : $Id: TODO.pod,v 1.8 2008/11/04 14:48:37
-    kvarada Exp $
+    This document last modified by : $Id: TODO.pod,v 1.10 2009/02/13
+    15:44:43 kvarada Exp $
 
 SEE ALSO
     CHANGES, README, INSTALL

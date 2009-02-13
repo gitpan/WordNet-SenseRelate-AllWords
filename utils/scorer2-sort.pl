@@ -22,7 +22,7 @@ if ($help) {
 
 if ($version) {
     print "scorer2-sort.pl - sort scorer2 formatted file column by column\n";
-    print 'Last modified by : $Id: scorer2-sort.pl,v 1.7 2009/01/22 17:25:23 kvarada Exp $';
+    print 'Last modified by : $Id: scorer2-sort.pl,v 1.8 2009/02/13 14:49:56 kvarada Exp $';
     print "\n";
     exit;
 }
@@ -115,11 +115,11 @@ words are same and n < v.
  tpederse at d.umn.edu
 
 This document last modified by : 
-$Id: scorer2-sort.pl,v 1.7 2009/01/22 17:25:23 kvarada Exp $
+$Id: scorer2-sort.pl,v 1.8 2009/02/13 14:49:56 kvarada Exp $
 
 =head1 SEE ALSO
 
- L<semcor-reformat.pl> L<wsd-experiments.pl> L<scorer2-format.pl>
+ L<semcor-reformat.pl> L<wsd-experiments.pl> L<scorer2-format.pl> L<allwords-scorer2.pl>
 
 =head1 COPYRIGHT AND LICENSE
 

@@ -11,22 +11,24 @@ lib/WordNet/SenseRelate/AllWords.pm
 Makefile.PL
 MANIFEST			This list of files
 README
+samples/default-stoplist-raw.txt
 samples/README
 samples/semcor-sample.txt
 samples/short-raw.txt
 samples/short-tagged.txt
 samples/short-wntagged.txt
-samples/stoplist.txt
 t/Error-Suffixes-tagged-wntagged.t
 t/WordNet-SenseRelate-AllWords.t
 t/wsd.t
 TODO
+utils/allwords-scorer2.pl
 utils/scorer2-format.pl
 utils/scorer2-sort.pl
 utils/semcor-reformat.pl
 utils/sentence_split.pl
 utils/wsd-experiments.pl
 utils/wsd.pl
+web/.#INSTALL.web.pod.1.11
 web/cgi-bin/allwords/allwords.cgi
 web/cgi-bin/allwords/allwords_server.pl
 web/cgi-bin/allwords/user_data/default-stoplist-raw.txt

@@ -243,7 +243,7 @@ used by the web interface is located at web/cgi-bin/allwords/user_data/default-s
  tpederse at d.umn.edu
 
 This document last modified by :
-$Id: INSTALL.web.pod,v 1.12 2009/02/13 16:25:16 kvarada Exp $
+$Id: INSTALL.web.pod,v 1.11 2009/02/13 15:21:33 kvarada Exp $
 
 =head1 SEE ALSO
 

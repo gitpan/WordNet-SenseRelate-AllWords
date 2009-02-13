@@ -102,8 +102,11 @@ which is used for temporary storage of user input:
 
 For every disambiguation request, a unique user directory is created here, 
 where we store all information about the input files and the result files. 
+The user_data directory also contains the default stoplist file, 
+default-stoplist-raw.txt. This stoplist file should be the exact replica 
+of samples/default-stoplist-raw.txt.
 
-The web/htdocs/allwords directory contains one html script and user_data 
+The web/htdocs/allwords directory contains one html script and the user_data 
 directory: 
 
 =over
@@ -155,9 +158,9 @@ wntagged : The star#n married#v the director#n
 If the user doesn't upload a stoplist, the default stoplist will 
 automatically be used, UNLESS the user unchecks the default stoplist 
 option (which is always on). If the user unchecks this option and does 
-not upload their own stoplist, then no stoplist will be employed. 
+not upload his own stoplist, then no stoplist will be employed. 
 
-However, if the user uploads their own stoplist and also checks the box 
+However, if the user uploads his own stoplist and also checks the box 
 for using the default stoplist, the user's stoplist will override the 
 default and be used.
 
@@ -172,6 +175,11 @@ creating AllWords object. The trace can be viewed by clicking on 'See
 Trace output'. It is also available in result files as trace.txt for 
 future reference.          
 
+=head2 Configuration file option
+
+The web interface doesn't support config file option. Instead we use reasonable 
+default configuration parameters. 
+
 =head1 AUTHORS
 
  Varada Kolhatkar, University of Minnesota, Duluth
@@ -181,14 +189,7 @@ future reference.
  tpederse at d.umn.edu
 
 This document last modified by : 
-$Id: README.web.pod,v 1.11 2008/11/14 05:48:30 tpederse Exp $ 
-
-=head1 BUGS
-
-If you give mal formatted config file, the error handling is not
-properly. Your server won't die. You will see the error message
-where allwords_server.pl is running. However, no proper error message
-will be shown to the end user. 
+$Id: README.web.pod,v 1.13 2009/02/13 15:56:15 kvarada Exp $ 
 
 =head1 SEE ALSO
 

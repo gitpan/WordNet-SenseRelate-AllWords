@@ -79,6 +79,11 @@ input to the Senseval scorer2 program.
 
 This script will call the above scripts and will run wsd experiments. 
 
+=item allwords-scorer2.pl
+
+This script is modeled after the senseval scorer2 C program (http://www.senseval.org/senseval3/scoring)
+and will be used for scoring. 
+
 =item sentence_split.pl
 
 This script splits text into sentences. We expect that the input format to allwords 
@@ -273,10 +278,12 @@ word sense in a synset (synonym set) to which the original word belongs.
 
 =head3 Usage
 
-wsd.pl --context FILE --format FORMAT [--scheme SCHEME] [--type MEASURE]
-[--config FILE] [--stoplist FILE] [--window INT]
-[--contextScore NUM] [--pairScore NUM] [--outfile FILE] [--trace INT]
-[--silent] | --help | --version
+wsd.pl --context FILE --format FORMAT [--scheme SCHEME] [--type MEASURE] 
+[--config FILE] [--stoplist FILE] 
+[--window INT] [--contextScore NUM] [--pairScore NUM] 
+[--outfile FILE] [--trace INT] [--forcepos] [--nocompoundify]
+| --help | --version
+
 
 The format option specifies one of the three different formats supported
 by wsd.pl.  The three formats are:
@@ -444,7 +451,7 @@ There are several mailing lists for SenseRelate :
 
 Last updated by :
 
-# $Id: README.pod,v 1.12 2009/01/19 16:39:17 kvarada Exp $
+# $Id: README.pod,v 1.13 2009/02/13 15:43:12 kvarada Exp $
 
 =head1 COPYRIGHT
 

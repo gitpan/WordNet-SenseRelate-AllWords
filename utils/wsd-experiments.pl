@@ -16,7 +16,6 @@ use Getopt::Long;
 # vars
 my $measure;
 my @infile;
-my $scorer2;
 my $semcordir;
 my $config;
 my $outfile;
@@ -26,6 +25,7 @@ my $sense1 = 0;
 my $random = 0;
 my $pairScore = 0;
 my $forcepos = 0;
+my $nocompoundify = 0;
 my $contextScore = 0;
 my $devnull; # null device; name varies on different systems
 my $tracefile = $devnull = File::Spec->devnull;
@@ -50,10 +50,10 @@ my $res = GetOptions ('type=s' => \$measure,
 		      'file=s' => \@infile,
                     'semcor=s' => \$semcordir,
 		      'stoplist=s' => \$stoplist,
-		      'scorer2=s' => \$scorer2,
 		      'config=s' => \$config,
 		      'window=i' => \$window,
 		      'forcepos' => \$forcepos,
+		      'nocompoundify' => \$nocompoundify,
 		      'pairScore=f' => \$pairScore,
 		      'contextScore=f' => \$pairScore,
                     'basename=s' => \$basename,
@@ -73,7 +73,7 @@ if ($help) {
 
 if ($version) {
     print "wsd-experiments.pl - driver for running wsd experiments\n";
-    print 'Last modified by : $Id: wsd-experiments.pl,v 1.9 2009/01/22 23:53:21 kvarada Exp $';
+    print 'Last modified by : $Id: wsd-experiments.pl,v 1.11 2009/02/13 14:49:10 kvarada Exp $';
     print "\n";
     exit;
 }
@@ -106,12 +106,6 @@ unless ($basename) {
     print STDERR "No base name for output files specified\n";
     usage();
     exit 6;
-}
-
-unless ($scorer2) {
-    print STDERR "No scorer2 path to evaluate the results\n";
-    usage();
-    exit 7;
 }
 
 
@@ -160,9 +154,9 @@ if ($? >> 8) {
     exit 1;
 }
 
-system ("which $scorer2 > $devnull");
+system ("which allwords-scorer2.pl > $devnull");
 if ($? >> 8) {
-    print STDERR "$scorer2 doesn't exist.\n";
+    print STDERR "Can't find perl script allwords-scorer2.pl. Please check your PATH variable.\n";
     exit 1;
 }
 
@@ -247,7 +241,9 @@ $options .= " --contextScore $contextScore" if defined $contextScore;
 $options .= " --config $config" if $config;
 $options .= " --stoplist $stoplist" if $stoplist;
 $options .= " --scheme $scheme";
+$options .= " --nocompoundify" if $nocompoundify;
 $options .= " --forcepos" if $forcepos;
+
 $options .= " --type $measure" if $measure;
 
 $measure = '(none)' if $sense1 or $random;
@@ -299,22 +295,10 @@ if (-z $outfile) {
 
 #unlink $t2;
 
-my $scorer_out = `$scorer2 $outfile $tkey`;
+my $scorer_out = `allwords-scorer2.pl --ansfile $outfile --keyfile=$tkey`;
 
 print $scorer_out;
 print TFH $scorer_out;
-
-if (my ($p) = $scorer_out =~ /precision: ([\d\.]+)/
-    and my ($r) = $scorer_out =~ /recall: ([\d\.]+)/) {
-    #my $p = $1;
-    #my $r = $2;
-    my $f = 2 * $p * $r / ($p + $r);
-    print TFH "\nF-measure: $f\n";
-    print "\nF-measure: $f\n";
-}
-else {
-    print "(precision & recall information not found in scorer2 output)\n";
-}
 
 # move the temp keyfile to permanent location
 system ("cat $tkey > $keyfile");
@@ -340,9 +324,9 @@ sub usage
 {
     my $long = shift;
     print "Usage: wsd-experiments.pl {--type=MEASURE | --sense1 | --random} --basename=outputfile\n";
-    print "                         {--semcor DIR | --file FILE [FILE ...]} --scorer2=scorer2-path\n";
+    print "                         {--semcor DIR | --file FILE [FILE ...]}\n";
     print "                         [--config=FILE] [--window=INT] [stoplist=FILE]\n";
-    print "                         [--contextScore NUM] [--pairScore NUM] [--forcepos]\n";
+    print "                         [--contextScore NUM] [--pairScore NUM] [--forcepos][--nocompoundify]\n";
     print "                         | {--help | --version}\n";
     if ($long) {
 	print "Options:\n";
@@ -352,7 +336,6 @@ sub usage
 	print "\t--basename           The basename for the output files\n";
 	print "\t--semcor             The location of the SemCor directory\n";
 	print "\t--file               one or more semcor-formatted files to process\n";
-	print "\t--scorer2            The scorer2 C program executable path\n";
 	print "\t--config FILE        a configuration file for the relatedness measure\n";
 	print "\t--stoplist FILE      a file of regular expressions that define\n";
 	print "\t                     the words to be excluded from --context\n";
@@ -363,6 +346,7 @@ sub usage
 	print "\t--pairScore NUM      the minimum pairwise threshold when\n";
 	print "\t                     measuring target and word in window\n";
        print "\t--forcepos           force all words in window of context\n";
+       print "\t--nocompoundify      disable compoundifying\n";
        print "\t                     to be same pos as target (pos coercion)\n";
 	print "\t                     are assigned\n";
 	print "\t--help               show this help message\n";
@@ -377,15 +361,15 @@ wsd-experiments.pl - driver for running wsd experiments
 =head1 SYNOPSIS
 
 wsd-experiments.pl {--type=MEASURE | --sense1 | --random} --basename=outputfile
-                  {--semcor DIR | --file FILE [FILE ...]} --scorer2=scorer2-path
+                  {--semcor DIR | --file FILE [FILE ...]}
                   [--config=FILE] [--window=INT] [stoplist=FILE]
-                  [--contextScore NUM] [--pairScore NUM] [--forcepos]
+                  [--contextScore NUM] [--pairScore NUM] [--forcepos][--nocompoundify]
                   | {--help | --version}
 		    
 
 =head1 EXAMPLE
 
-wsd-experiments.pl --type='WordNet::Similarity::lesk' --basename='test-output' --file=br-a01 --scorer2=./scorer2 --window=2
+wsd-experiments.pl --type='WordNet::Similarity::lesk' --basename='test-output' --file=br-a01 --window=2
 
 =head1 DESCRIPTION
 
@@ -398,7 +382,12 @@ SemCor sense tagged files are reformatted for use by wsd.pl using semcor-reforma
 Then wsd.pl is called to disambiguate the text. The disambiguated text is reformatted 
 using scorer2-format.pl. The answer file is created by sorting this text on columns. 
 
-Finally, the answer file is scored against the key file using the scorer2 C program. 
+Finally, the answer file is scored against the key file using allwords-scorer2.pl script which 
+is modeled after the scorer2 C program (http://www.senseval.org/senseval3/scoring). 
+
+Note that allwords-scorer2.pl doesn't need the key and answer files to be sorted. However, the scorer2 C program
+needs the input to be sorted. So the files are sorted in case you want to use scorer2 C program to compare the
+results. 
 
 =head1 OPTIONS
 
@@ -418,7 +407,7 @@ first sense in WordNet because the senses of words in WordNet are ranked accordi
 frequency. The first sense is more likely than the second, the second is more likely  
 than the third, etc. 
 
-wsd-experiments.pl --sense1 --basename='test-output' --file=br-a01 --scorer2=./scorer2
+wsd-experiments.pl --sense1 --basename='test-output' --file=br-a01
 
 If you are using this option, don't use --type option or --random option. 
 
@@ -426,7 +415,7 @@ If you are using this option, don't use --type option or --random option.
 
 Random selects one of the possible senses of the target word randomly. 
 
-wsd-experiments.pl --random --basename='test-output' --file=br-a01 --scorer2=./scorer2
+wsd-experiments.pl --random --basename='test-output' --file=br-a01
 
 If you are using this option, don't use --type option or --sense1 option. 
 
@@ -437,7 +426,7 @@ the key file, the answer file, the result file etc.
 
 For example for the following command, 
 
-wsd-experiments.pl --type='WordNet::Similarity::lesk' --basename='test-output' --file=br-a01 --scorer2=./scorer2
+wsd-experiments.pl --type='WordNet::Similarity::lesk' --basename='test-output' --file=br-a01 
 
 since the basename is test-output, it will create test-output.key, test-output.out and test-output.tr where 
 test-output.key is the key file, test-output.out is the answer file and test-output.tr is the trace file.
@@ -454,7 +443,7 @@ the brown1 and brown2 directories, you would only specify
 /home/user/semcor3.0 as the value of this option.  Do not use this
 option at the same time as the --file option.
 
-wsd-experiments.pl --type='WordNet::Similarity::lesk' --basename='test-output' --semcor=/home/user/semcor3.0 --scorer2=./scorer2
+wsd-experiments.pl --type='WordNet::Similarity::lesk' --basename='test-output' --semcor=/home/user/semcor3.0
 
 =item --file=B<FILE>
 
@@ -463,21 +452,9 @@ previous option to only specify a few Semcor files or to specify
 Senseval files.  When this option is used, multiple files can be
 specified on the command line.  For example
 
-wsd-experiments.pl --type='WordNet::Similarity::lesk' --basename='test-output' --file br-a01 br-a02 br-k18 br-m02 br-r05 --scorer2=./scorer2
+wsd-experiments.pl --type='WordNet::Similarity::lesk' --basename='test-output' --file br-a01 br-a02 br-k18 br-m02 br-r05
 
 Do not attempt to use this option when using the previous option.
-
-=item --scorer2=scorer2-path
-
-The scorer2 C program executable path. 
-
-scorer2 is used to score entries to Senseval.  The source code is available for 
-downloading:
-
-L<http://www.senseval.org/senseval3/scoring>
-
-After downloading the source, we created the executable as below. 
-cc -o scorer2 scorer2.c
 
 =item --config=B<FILE>
 
@@ -534,6 +511,11 @@ If the text is POS tagged, the POS tags will be ignored.
 POS coercion  may be useful when using a measure of semantic similarity that
 only works with noun-noun and verb-verb pairs.
 
+=item --nocompoundify
+
+Disable compoundifying. By default compoundifying is enabled. Using this option
+will disable it. 
+
 =back
 
 
@@ -548,7 +530,7 @@ only works with noun-noun and verb-verb pairs.
  tpederse at d.umn.edu
 
 This document last modified by : 
-$Id: wsd-experiments.pl,v 1.9 2009/01/22 23:53:21 kvarada Exp $
+$Id: wsd-experiments.pl,v 1.11 2009/02/13 14:49:10 kvarada Exp $
 
 =head1 SEE ALSO
 

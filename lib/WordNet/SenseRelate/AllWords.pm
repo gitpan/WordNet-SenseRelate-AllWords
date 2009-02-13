@@ -1,6 +1,6 @@
 package WordNet::SenseRelate::AllWords;
 
-# $Id: AllWords.pm,v 1.27 2009/01/19 16:08:59 kvarada Exp $
+# $Id: AllWords.pm,v 1.29 2009/02/13 15:53:56 kvarada Exp $
 
 =head1 NAME
 
@@ -60,7 +60,7 @@ use Carp;
 
 our @ISA = ();
 
-our $VERSION = '0.13';
+our $VERSION = '0.14';
 
 my %wordnet;
 my %wntools;
@@ -71,6 +71,7 @@ my %contextScore;
 my %trace;
 my %outfile;
 my %forcepos;
+my %nocompoundify;
 my %wnformat;
 my %fixed;
 
@@ -154,6 +155,7 @@ Parameters:
   contextScore => INTEGER   : minimum overall score (default: 0)
   trace        => INTEGER   : generate traces (default: 0)
   forcepos     => INTEGER   : do part-of-speech coercion (default: 0)
+  nocompoundify => INTEGER  : disable compoundify (default: 0)
 
 Returns:
 
@@ -204,6 +206,7 @@ sub new
     my $trace;
     my $outfile;
     my $forcepos;
+    my $nocompoundify;
     my $fixed = 0;
     my $wnformat = 0;
 
@@ -229,6 +232,9 @@ sub new
 	}
 	elsif ($key eq 'contextScore') {
 	    $contextScore = $val;
+	}
+	elsif($key eq 'nocompoundify'){
+	    $nocompoundify=$val;	
 	}
 	elsif ($key eq 'trace') {
 	    $trace = $val;
@@ -326,6 +332,14 @@ sub new
 	$forcepos{$self} = 0;
     }
 
+    if (defined $nocompoundify) {
+	$nocompoundify{$self} = $nocompoundify;
+    }
+    else {
+	$nocompoundify{$self} = 0;
+    }
+
+
     $fixed{$self} = $fixed;
 
     $wnformat{$self} = $wnformat;
@@ -347,6 +361,7 @@ sub DESTROY
     delete $trace{$self};
     delete $outfile{$self};
     delete $forcepos{$self};
+    delete $nocompoundify{$self};
     delete $wnformat{$self};
     delete $fixed{$self};
 
@@ -548,10 +563,12 @@ sub _initializeContext
     my $tagged = shift;
     my $wn = $wordnet{$self};
     my $wnt = $wntools{$self};
+    my $nocompoundify = $nocompoundify{$self};
+
     my @context = @_;
 
     # compoundify the words (if the text is raw)
-    if (defined $wnt and !$tagged and !$wnformat{$self}) {
+    if (defined $wnt and $nocompoundify == 0 and defined !$tagged and !$wnformat{$self} ) {
 		@context = split(/ +/,$wnt->compoundify("@context"));
     }
 

@@ -1,6 +1,5 @@
 #!/usr/bin/perl
-
-# $Id: wsd.pl,v 1.25 2009/01/22 14:37:55 kvarada Exp $
+# $Id: wsd.pl,v 1.30 2009/02/13 14:53:24 kvarada Exp $
 
 use strict;
 use warnings;
@@ -18,6 +17,7 @@ our $window = 3;
 our $contextScore = 0;
 our $pairScore = 0;
 our $glosses;
+our $nocompoundify;
 our $trace;
 our $help;
 our $version;
@@ -25,6 +25,9 @@ our $scheme = 'normal';
 our $outfile;
 our $forcepos;
 our $val;
+our $i=0;
+our $j=0;
+
 
 our $format; # raw|tagged|wntagged
 my $OK_CHARS='-a-zA-Z0-9_\'\n ';
@@ -39,6 +42,7 @@ my $ok = GetOptions ('type|measure=s' => \$measure,
 		     'scheme=s' => \$scheme,
 		     forcepos => \$forcepos,
 		     glosses => \$glosses,
+		     nocompoundify => \$nocompoundify,
 		     'trace=i' => \$trace,
 		     help => \$help,
 		     version => \$version,
@@ -54,7 +58,7 @@ if ($help) {
 
 if ($version) {
     print "wsd.pl - assign a sense to all words in a context\n";
-    print 'Last modified by : $Id: wsd.pl,v 1.25 2009/01/22 14:37:55 kvarada Exp $';
+    print 'Last modified by : $Id: wsd.pl,v 1.30 2009/02/13 14:53:24 kvarada Exp $';
     print "\n";
     exit;
 }
@@ -100,6 +104,7 @@ if ($window < 2) {
 	print STDERR "    pairScore     : ", $pairScore, "\n";
 	print STDERR "    measure config: ", ($mconfig ? $mconfig : '(none)'), "\n";
 	print STDERR "    glosses       : ", ($glosses ? "yes" : "no"), "\n";
+	print STDERR "    nocompoundify : ", ($nocompoundify ? "yes" : "no"), "\n";
 	print STDERR "    trace         : ", ($trace ? $trace : "no"), "\n";
 	print STDERR "    forcepos      : ", ($forcepos ? "yes" : "no"), "\n";
     }
@@ -129,7 +134,7 @@ $wntools or die "\nCouldn't construct WordNet::Tools object";
 
 # options for the WordNet::SenseRelate constructor
 my %options = (wordnet => $qd,
-				wntools => $wntools,
+		wntools => $wntools,
 	       measure => $measure,
 	       );
 $options{config} = $mconfig if defined $mconfig;
@@ -139,6 +144,7 @@ $options{pairScore} = $pairScore if defined $pairScore;
 $options{contextScore} = $contextScore if defined $contextScore;
 $options{outfile} = $outfile if defined $outfile;
 $options{forcepos} = $forcepos if defined $forcepos;
+$options{nocompoundify} = $nocompoundify if defined $nocompoundify;
 $options{wnformat} = 1 if $format eq 'wntagged';
 
 my $sr = WordNet::SenseRelate::AllWords->new (%options);
@@ -177,7 +183,6 @@ else {
 
 close FH;
 
-my $i = 0;
 foreach my $sentence (@sentences) {
     my @context = split /\s+/, $sentence;
     next unless scalar @context > 0;
@@ -187,14 +192,42 @@ foreach my $sentence (@sentences) {
 				 tagged => $istagged,
 				 scheme => $scheme,
 				 context => [@context]);
+
 	if($glosses)
 	{
-		my $i=0;
 		print STDOUT join (' ', @context), "\n";
 		print STDOUT join (' ', @res), "\n";
-		foreach $val (@res)
-		{
-			chomp($val);
+	}
+
+	for($i=0,$j=0; $i<=$#res ; $i++,$j++)
+	{
+		   my $val;
+  		   my $tagindex=index($res[$i],"#");
+		   my $tag=substr $res[$i], $tagindex;
+		   
+		   if($format eq 'raw')
+		   {
+			 if($res[$i] =~ /\_/ && $context[$i] !~ /\_/)
+			 {
+				$val=$res[$i];
+				$j++;
+			 }else{
+				$val=$context[$j].$tag;
+			 }
+		   }
+		   elsif($format eq 'tagged')
+		   {
+			 my ($tw,$tt)= ( $context[$j] =~ /(\S+)\/(\S+)/);
+			 $val=$tw.$tag;
+		   }	
+  		   elsif($format eq 'wntagged')
+		   {
+			 my ($tw,$tt)= split /\#/, $context[$j];
+			 $val=$tw.$tag;
+		   }	
+
+		   if($glosses)
+		   {
 			if($val =~ /\#o/ )
 			{
 				print STDOUT "\n$val : stopword";
@@ -225,23 +258,23 @@ foreach my $sentence (@sentences) {
 			}
 			else
 			{
-				my ($gloss) = $qd->querySense ($val, "glos");
+				my ($gloss) = $qd->querySense ($res[$i], "glos");
 				print STDOUT "\n$val : $gloss\n";
 			}
+		   }
+		   else
+		   {
+			print $val." ";
+		   }	   	
 		}
-		printf "\n";
-	}
-	else
-	{
-		    print STDOUT join (' ', @res), "\n";
-	}
-    if ($trace) {
-	my $tstr = $sr->getTrace ();
-	print $tstr, "\n";
-    }
-}
+ 	       print "\n";
 
-exit;
+		if ($trace) 
+		{
+			my $tstr = $sr->getTrace ();
+			print $tstr, "\n";
+    		}
+}
 
 sub isTagged
 {
@@ -284,7 +317,7 @@ sub showUsage
     print "              [--type MEASURE] [--config FILE] \n";
     print "              [--stoplist file] [--window INT] [--contextScore NUM]\n";
     print "              [--pairScore NUM] [--outfile FILE] [--trace INT] \n";
-	print "              [--glosses][--forcepos] \n";
+    print "              [--glosses][--forcepos][--nocompoundify] \n";
     print "              | {--help | --version}\n";
 
     if ($long) {
@@ -309,6 +342,7 @@ sub showUsage
 	print "\t                       detail. may be summed to combine output. \n";
 	print "\t--glosses            show glosses of each disambiguated word\n";
         print "\t--forcepos           force all words in window of context\n";
+        print "\t--nocompoundify      disable compoundify\n";
         print "\t                       to be same pos as target (pos coercion)\n";
 	print "\t                       are assigned\n";
 	print "\t--help               show this help message\n";
@@ -327,7 +361,7 @@ wsd.pl - automatically assign a meaning to every word in a text
  wsd.pl --context FILE --format FORMAT [--scheme SCHEME] [--type MEASURE] 
            [--config FILE] [--stoplist FILE] 
            [--window INT] [--contextScore NUM] [--pairScore NUM] 
-           [--outfile FILE] [--trace INT] [--forcepos] 
+           [--outfile FILE] [--trace INT] [--forcepos] [--nocompoundify]
 		| --help | --version
 
 =head1 DESCRIPTION
@@ -476,6 +510,11 @@ in the context window to be of the same part of speech as the target word.
 If the text is POS tagged, the POS tags will be ignored.
 POS coercion  may be useful when using a measure of semantic similarity that
 only works with noun-noun and verb-verb pairs.
+
+=item --nocompoundify
+
+Disable compoundifying. By default AllWords.pm compoundifes the input raw text. 
+Using this option will disable this. 
 
 =back
 

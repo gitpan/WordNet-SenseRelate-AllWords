@@ -23,12 +23,10 @@ my $stoplistfilename;
 my $stoplist;
 my $contextfile;
 my $contextfilename;
-my $configfile;
-my $configfilename;
 my $tracefilename;
 
+
 my $traceflag=0;
-my $config;
 my $defstop="off";
 
 my $doc_base;
@@ -139,20 +137,6 @@ elsif($contextfile){
 	close CONTEXT;	
 }
 
-$configfile=$cgi->param('configfile') if defined $cgi->param('configfile');
-if($configfile){
-
-	$configfilename = getFileName($configfile);
-	$config="$usr_dir/"."$configfilename";
-	$options{config} = "$configfilename";
-	open CONFIG ,">","$config" or writetoCGI("Error in uploading Config file.");
-	while(read($configfile,$buffer,1024))
-	{
-		print CONFIG $buffer;
-	}
-	close CONFIG;
-}
-
 # If the user uploads his own stoplist as well as keep the default 
 # stoplist option checked, the stoplist included by the user will 
 # always override the default
@@ -204,8 +188,7 @@ foreach $trace (@tracelevel) {
 }
 
 $options{forcepos} = $cgi->param('forcepos') if defined $cgi->param('forcepos');
-
-
+$options{nocompoundify} = $cgi->param('nocompoundify') if defined $cgi->param('nocompoundify');
 
 $doc_base=$ENV{'DOCUMENT_ROOT'};
 open FH, '>', $filename or die "Cannot open $filename for writing: $!";
@@ -352,26 +335,17 @@ die "can't fork: $!" unless defined($kidpid = fork());
 		}
 		close FH;
 
-		open SFH, '<', "$usr_dir/"."$options{stoplist}" or die "can't open stoplist file $stoplist for reading : $!";
-		printf Server "<start-of-stoplist>\015\012";
-		while (defined ($line = <SFH>))
+		if(defined $options{stoplist})
 		{
-			 printf Server "<stp>:$line\015\012";
-		}
-		printf Server "<end-of-stoplist>\015\012";
-		close SFH;
-		if($configfile)
-		{
-			open CFFH, '<', "$usr_dir/$options{config}" or die "can't open config file $usr_dir/$options{config} for reading : $!";
-			printf Server "<start-of-config>\015\012";
-			while (defined ($line = <CFFH>))
+			open SFH, '<', "$usr_dir/"."$options{stoplist}" or die "can't open stoplist file $stoplist for reading : $!";
+			printf Server "<start-of-stoplist>\015\012";
+			while (defined ($line = <SFH>))
 			{
-				 printf Server "<cfg>:$line\015\012";
+				 printf Server "<stp>:$line\015\012";
 			}
-			printf Server "<end-of-config>\015\012";
-			close CFFH;
+			printf Server "<end-of-stoplist>\015\012";
+			close SFH;
 		}
-
 		print Server "<End>\0012\n";
 		print "<p><a href=\"http://$hostname/allwords/allwords.html\">Start Over</a></p>";
     }
@@ -411,7 +385,7 @@ This script works in conjunction with allwords_server.pl to
 provide a web interface for L<WordNet::SenseRelate::AllWords>. The html 
 file, htdocs/allwords/allwords.html posts the data entered by the user 
 to this script. The input data, in particular, the input context, stoplist
-file, config file and various disambiguation options are written in files 
+file and various disambiguation options are written in files 
 and sent to the server line by line. Then it waits for the server to send 
 results. After receiving results, they are displayed to the user. Moreover 
 the user_data along with the tarball of result files is moved to 
@@ -427,7 +401,7 @@ later.
  tpederse at d.umn.edu
 
 This document last modified by : 
-$Id: allwords.cgi,v 1.26 2008/11/06 02:31:48 kvarada Exp $
+$Id: allwords.cgi,v 1.30 2009/02/13 15:00:52 kvarada Exp $
 
 =head1 SEE ALSO
 

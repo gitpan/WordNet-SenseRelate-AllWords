@@ -27,7 +27,7 @@ if ($help) {
 
 if ($version) {
     print "semcor-reformat.pl - Reformat SemCor sense tagged files for use by wsd.pl\n";
-    print 'Last modified by : $Id: semcor-reformat.pl,v 1.15 2009/01/22 14:38:30 kvarada Exp $';
+    print 'Last modified by : $Id: semcor-reformat.pl,v 1.16 2009/02/13 14:37:30 kvarada Exp $';
     print "\n";
     exit;
 }
@@ -461,10 +461,10 @@ Do not attempt to use this option when using the previous option.
 
 =item --key
 
-Generates a key file for use by the scorer2 program instead of a file
-that can be used for wsd.pl.  The scorer2 program can be used to measure
+Generates a key file for use by the allwords-scorer2.pl program instead of a file
+that can be used for wsd.pl.  The allwords-scorer2.pl program can be used to measure
 the performance of a word sense disambiguation program.  See the documentation
-for scorer2-format.pl for more information.
+for scorer2-format.pl and allwords-scorer2.pl for more information.
 
 =back
 
@@ -479,12 +479,11 @@ for scorer2-format.pl for more information.
  tpederse at d.umn.edu
 
 This document last modified by : 
-$Id: semcor-reformat.pl,v 1.15 2009/01/22 14:38:30 kvarada Exp $
+$Id: semcor-reformat.pl,v 1.16 2009/02/13 14:37:30 kvarada Exp $
 
 =head1 SEE ALSO
 
- L<wsd-experiments.pl> L<scorer2-format.pl> L<scorer2-sort.pl>
-
+ L<wsd-experiments.pl> L<scorer2-format.pl> L<scorer2-sort.pl> L<allwords-scorer2.pl>
 
 =head1 COPYRIGHT AND LICENSE
 

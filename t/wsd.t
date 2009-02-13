@@ -1,4 +1,4 @@
-# $Id: wsd.t,v 1.6 2008/11/06 02:47:33 kvarada Exp $
+# $Id: wsd.t,v 1.7 2009/02/13 13:53:44 kvarada Exp $
 #
 # simple test script for wsd.pl
 
@@ -46,8 +46,7 @@ my $wsd_pl = File::Spec->catfile ('utils', 'wsd.pl');
 ok (-e $wsd_pl);
 
 my $inc = "-Iblib/lib";
-
-my $expected = 'parking_ticket#n#1 be#v#1 expensive#a#1';
+my $expected = 'parking_tickets#n#1 are#v#1 expensive#a#1 ';
 
 # test the tagged mode
 my $t1in = File::Spec->catfile ($tmp, "$$.1in");

@@ -22,7 +22,7 @@ if ($help) {
 
 if ($version) {
     print "scorer2-format.pl - Reformat wsd.pl output for use by the scorer2 evaluation program\n";
-    print 'Last modified by : $Id: scorer2-format.pl,v 1.7 2009/01/22 14:37:08 kvarada Exp $';
+    print 'Last modified by : $Id: scorer2-format.pl,v 1.9 2009/02/13 14:47:58 kvarada Exp $';
     print "\n";
     exit;
 }
@@ -39,9 +39,12 @@ while (my $line = <FH>) {
     my @forms = split /\s+/, $line;
     foreach my $form (@forms) {
 	my ($w, $p, $s) = split /\#/, $form;
-
 	# inc the id number
 	$id++;
+
+	unless (defined $s && defined $p){
+		next;
+	}
 	
 	# check to see if there is a sense number assigned
 	if ($s !~ m/NR/ && $s !~ m/ND/ ) {
@@ -72,7 +75,7 @@ __END__
 
 =head1 NAME
 
-scorer2-format.pl - Reformat wsd.pl output for use by the scorer2 evaluation program 
+scorer2-format.pl - Reformat wsd.pl output for use by the allwords-scorer2.pl evaluation program 
 
 =head1 SYNOPSIS
 
@@ -81,17 +84,15 @@ scorer2-format.pl - Reformat wsd.pl output for use by the scorer2 evaluation pro
 =head1 DESCRIPTION
 
 This script reads file from the command line and reformats
-it so that it can be scored using the Senseval scorer2 program.  The
-input format is that of the wsd.pl program that is distributed with
+it so that it can be scored using the allwords-scorer2.pl program.  
+The input format is that of the wsd.pl program that is distributed with
 WordNet-SenseRelate.  The output is printed to the standard output and the
 configuration information is printed to the standard error. 
 
-=head1 scorer2
+=head1 allwords-scorer2.pl
 
-scorer2 is a C program used to score entries to Senseval.  The source
-code is available for downloading:
-
-L<http://www.senseval.org/senseval3/scoring>
+allwords-scorer2.pl is modeled after scorer2 C program used to score entries to Senseval.
+The scorer2 C program is available for download at L<http://www.senseval.org/senseval3/scoring>.
 
 =head1 AUTHORS
 
@@ -104,11 +105,12 @@ L<http://www.senseval.org/senseval3/scoring>
  <tpederse at d.umn.edu>
 
 This document last modified by : 
-$Id: scorer2-format.pl,v 1.7 2009/01/22 14:37:08 kvarada Exp $
+$Id: scorer2-format.pl,v 1.9 2009/02/13 14:47:58 kvarada Exp $
 
 =head1 SEE ALSO
 
- L<semcor-reformat.pl> L<wsd-experiments.pl> L<scorer2-sort.pl>
+ L<semcor-reformat.pl> L<wsd-experiments.pl> L<scorer2-sort.pl> L<allwords-scorer2.pl>
+
 
 =head1 COPYRIGHT 
 

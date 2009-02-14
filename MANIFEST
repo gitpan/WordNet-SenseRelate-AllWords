@@ -28,7 +28,6 @@ utils/semcor-reformat.pl
 utils/sentence_split.pl
 utils/wsd-experiments.pl
 utils/wsd.pl
-web/.#INSTALL.web.pod.1.11
 web/cgi-bin/allwords/allwords.cgi
 web/cgi-bin/allwords/allwords_server.pl
 web/cgi-bin/allwords/user_data/default-stoplist-raw.txt

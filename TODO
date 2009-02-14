@@ -6,7 +6,7 @@ SYNOPSIS
     driver, and web interface.
 
 DESCRIPTION
-  For version 0.15
+  For version 0.16
     1)  Add config file option to the web interface so that it would be able
         to handle the files specified in the configuration file ( for
         example, stoplist file path specified in the configuration file).

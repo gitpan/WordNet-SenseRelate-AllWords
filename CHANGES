@@ -2,6 +2,12 @@ NAME
     CHANGES - Revision history for WordNet::SenseRelate::AllWords
 
 DESCRIPTION
+    0.15
+        Date : February 14, 2009
+
+        1)  Fixed the links of the default stoplist and nocompoundify option
+            on the web interface.
+
     0.14
         Date : February 13, 2009
 

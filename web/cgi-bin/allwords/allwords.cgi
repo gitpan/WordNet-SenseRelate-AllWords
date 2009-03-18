@@ -104,8 +104,7 @@ if ($cgi->param('measure') =~ /lesk/) {
 
 if($text){
 	if ($format ne 'tagged' && $format ne 'wntagged') {
-		$text =~ s/[^$OK_CHARS]/ /g;
-		$text =~ s/([A-Z])/\L$1/g;
+		$text = cleanLine($text);
 		if ($text !~ /[a-zA-Z0-9]/) {
 			   writetoCGI("\nPlease use back link to return to original page to enter your text\n");
 			   print "<p><a href=\"http://$hostname/allwords/allwords.html\">Back</a></p>";
@@ -124,8 +123,7 @@ elsif($contextfile){
 	open CONTEXT,">","$context" or writetoCGI("Error in uploading contextfile.");
 	while(read($contextfile,$buffer,1024)){
 		if ($format ne 'tagged' && $format ne 'wntagged') {
-			$buffer =~ s/[^$OK_CHARS]/ /g;
-			$buffer =~ s/([A-Z])/\L$1/g;
+			$text = cleanLine($text);
 			if ($buffer !~ /[a-zA-Z0-9]/) {
 			    writetoCGI("\nPlease use back link to return to original page to enter your text\n");
 				print "<p><a href=\"http://$hostname/allwords/allwords.html\">Back</a></p>";
@@ -320,6 +318,7 @@ die "can't fork: $!" unless defined($kidpid = fork());
 		printf Server "<User Directory>:$usr_dir\n";
 		open CFH, '<', "$context" or die "can't open context file $context for reading : $!";
 		printf Server "<start-of-context>\015\012";
+
 		while (defined ($line = <CFH>))
 		{
 		     printf Server "<con>:$line\015\012";
@@ -350,6 +349,25 @@ die "can't fork: $!" unless defined($kidpid = fork());
 		print "<p><a href=\"http://$hostname/allwords/allwords.html\">Start Over</a></p>";
     }
 
+
+
+sub cleanLine
+{
+    	my $line = shift;
+	chomp($line);
+	my @words=split(/ +/,$line);
+	foreach my $word (@words){
+		next if($word eq "i.e." || $word eq "ie." || $word eq "et_al." || $word eq "al.");
+		$word =~ s/([A-Z])/\L$1/g;
+		if ($word =~ m/_/){
+			$word =~ s/[.|!|?|,|;]+$/ /;
+		}
+		else{
+			$word =~ s/[^$OK_CHARS]/ /g;
+		}
+	}
+	return join (' ', @words);
+}
 	
 sub writetoCGI
 {
@@ -401,7 +419,7 @@ later.
  tpederse at d.umn.edu
 
 This document last modified by : 
-$Id: allwords.cgi,v 1.30 2009/02/13 15:00:52 kvarada Exp $
+$Id: allwords.cgi,v 1.32 2009/03/16 21:43:13 kvarada Exp $
 
 =head1 SEE ALSO
 

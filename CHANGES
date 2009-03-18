@@ -2,6 +2,24 @@ NAME
     CHANGES - Revision history for WordNet::SenseRelate::AllWords
 
 DESCRIPTION
+    0.16
+        Date : March 16, 2009
+
+        1)  Fixed wsd.pl and the web interface output for multiword
+            compounds ( for example, by_and_large).
+
+        2)  Punctuation fix for the raw format. If the format is raw and if
+            the context contains words i.e. or el_al., then the period is
+            not removed.
+
+        3)  If format is raw and the context contains user identified
+            compound words (for example St._Petersburg), then the
+            punctuation is not removed. Please refer README for details.
+
+        4)  Mapped Penn Treebank IN tag to WordNet 'r'(adverb) part of
+            speech tag because most of the words in this class have adverb
+            sense in WordNet.
+
     0.15
         Date : February 14, 2009
 
@@ -245,8 +263,8 @@ AUTHORS
      Ted Pedersen, University of Minnesota, Duluth
      tpederse at d.umn.edu
 
-    This document last modified by : $Id: CHANGES.pod,v 1.15 2009/02/13
-    15:50:56 kvarada Exp $
+    This document last modified by : $Id: CHANGES.pod,v 1.18 2009/03/17
+    03:37:17 kvarada Exp $
 
 SEE ALSO
     README, INSTALL, TODO

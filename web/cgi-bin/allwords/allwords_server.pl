@@ -56,7 +56,7 @@ if ($help) {
 
 if ($version) {
     print "allwords_server.pl - WordNet::SenseRelate::AllWords web interface server\n";
-    print 'Last modified by : $Id: allwords_server.pl,v 1.35 2009/02/13 16:37:59 kvarada Exp $';
+    print 'Last modified by : $Id: allwords_server.pl,v 1.37 2009/03/16 21:44:43 kvarada Exp $';
     print "\n";
     exit;
 }
@@ -266,13 +266,6 @@ foreach $temp (keys(%options))
 	print LFH "$temp=>".$options{$temp} . "\n";
 } 	
 
-	if ($format eq 'raw') {
-		foreach $sentence (@sentences) {
-			$sentence =~ s/[^-a-zA-Z0-9_' ]/ /g;
-			$sentence =~ s/([A-Z])/\L$1/g;
- 		    chomp($sentence);
-		}
-	}
    my $obj = WordNet::SenseRelate::AllWords->new(%options);
    $obj ? print LFH "\nWordNet::SenseRelate::AllWords object successfully created":print LFH "\nCouldn't construct WordNet::SenseRelate::AllWords object";
 
@@ -320,9 +313,10 @@ foreach $temp (keys(%options))
 		   
 		   if($format eq 'raw')
 		   {
-			 if($res[$i] =~ /\_/){
+			if($res[$i] =~ /\_/ && $context[$j] !~ /\_/){
+				my $count = ($res[$i] =~ tr/\_//);
 				$val=$res[$i];
-				$j++;
+				$j=$j+$count;
 			 }else{
 				$val=$context[$j].$tag;
 			 }
@@ -390,7 +384,6 @@ foreach $temp (keys(%options))
 				print RFH "\n$val : $gloss\n";
 				print $client "\n$val : $gloss\015\012";
 			}
-		
 		}
 		if ($options{trace}) {
 				open TFH, '>', $tracefilename or print "Cannot open $tracefilename for writing: $!";
@@ -484,7 +477,7 @@ for each client.
  tpederse at d.umn.edu
 
 This document last modified by : 
-$Id: allwords_server.pl,v 1.35 2009/02/13 16:37:59 kvarada Exp $ 
+$Id: allwords_server.pl,v 1.37 2009/03/16 21:44:43 kvarada Exp $ 
 
 =head1 SEE ALSO
 

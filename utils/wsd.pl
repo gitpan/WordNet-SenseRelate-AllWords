@@ -1,5 +1,5 @@
 #!/usr/bin/perl
-# $Id: wsd.pl,v 1.30 2009/02/13 14:53:24 kvarada Exp $
+# $Id: wsd.pl,v 1.32 2009/03/16 21:22:42 kvarada Exp $
 
 use strict;
 use warnings;
@@ -58,7 +58,7 @@ if ($help) {
 
 if ($version) {
     print "wsd.pl - assign a sense to all words in a context\n";
-    print 'Last modified by : $Id: wsd.pl,v 1.30 2009/02/13 14:53:24 kvarada Exp $';
+    print 'Last modified by : $Id: wsd.pl,v 1.32 2009/03/16 21:22:42 kvarada Exp $';
     print "\n";
     exit;
 }
@@ -198,7 +198,6 @@ foreach my $sentence (@sentences) {
 		print STDOUT join (' ', @context), "\n";
 		print STDOUT join (' ', @res), "\n";
 	}
-
 	for($i=0,$j=0; $i<=$#res ; $i++,$j++)
 	{
 		   my $val;
@@ -207,10 +206,11 @@ foreach my $sentence (@sentences) {
 		   
 		   if($format eq 'raw')
 		   {
-			 if($res[$i] =~ /\_/ && $context[$i] !~ /\_/)
+			 if($res[$i] =~ /\_/ && $context[$j] !~ /\_/)
 			 {
+				my $count = ($res[$i] =~ tr/\_//);
 				$val=$res[$i];
-				$j++;
+				$j=$j+$count;
 			 }else{
 				$val=$context[$j].$tag;
 			 }
@@ -303,11 +303,20 @@ sub isTagged
 
 sub cleanLine
 {
-    my $line = shift;
-	$line =~ s/[^$OK_CHARS]/ /g;
-	$line =~ s/([A-Z])/\L$1/g;
+    	my $line = shift;
 	chomp($line);
-    return $line;
+	my @words=split(/ +/,$line);
+	foreach my $word (@words){
+		next if($word eq "i.e." || $word eq "ie." || $word eq "et_al." || $word eq "al.");
+		$word =~ s/([A-Z])/\L$1/g;
+		if ($word =~ m/_/){
+			$word =~ s/[.|!|?|,|;]+$/ /;
+		}
+		else{
+			$word =~ s/[^$OK_CHARS]/ /g;
+		}
+	}
+	return join (' ', @words);
 }
 
 sub showUsage

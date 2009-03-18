@@ -1,6 +1,6 @@
 package WordNet::SenseRelate::AllWords;
 
-# $Id: AllWords.pm,v 1.30 2009/02/14 16:51:02 kvarada Exp $
+# $Id: AllWords.pm,v 1.32 2009/03/17 03:33:02 kvarada Exp $
 
 =head1 NAME
 
@@ -60,7 +60,7 @@ use Carp;
 
 our @ISA = ();
 
-our $VERSION = '0.15';
+our $VERSION = '0.16';
 
 my %wordnet;
 my %wntools;
@@ -99,7 +99,7 @@ my %wnTag = (
     RP => 'r',
     WRB => CLOSED,
     CC => CLOSED,
-    IN => CLOSED,
+    IN => 'r',
     DT => CLOSED,
     PDT => CLOSED,
     CC => CLOSED,

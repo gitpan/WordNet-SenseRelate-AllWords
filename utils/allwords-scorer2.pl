@@ -34,7 +34,7 @@ if ($help) {
 
 if ($version) {
     print "allwords-scorer2.pl - allwords scorer2 perl program\n";
-    print 'Last modified by : $Id: allwords-scorer2.pl,v 1.2 2009/02/11 02:50:33 kvarada Exp $';
+    print 'Last modified by : $Id: allwords-scorer2.pl,v 1.4 2009/03/17 00:05:26 kvarada Exp $';
     print "\n";
     exit;
 }
@@ -235,7 +235,7 @@ eval{$fmeasure = 2 * $precision * $recall / ($precision + $recall);};
 $fmeasure = 0 if($@);
 printf "\n F-measure: %.3f",$fmeasure; 
 
-print "\n\nAdjverbs:";
+print "\n\nAdverbs:";
 eval{$precision=($advhash{correct}/$advhash{attempted});};
 $precision=0 if($@);
 eval{$recall=($advhash{correct}/($advhash{attempted}+$advhash{skipped}));};
@@ -328,13 +328,19 @@ __END__
 
 =head1 NAME
 
-allwords-scorer2.pl - This perl script is used to score allwords 
+allwords-scorer2.pl - perl script used to score allwords. 
 
 =head1 SYNOPSIS
 
 allwords-scorer2.pl --ansfile FILE --keyfile FILE
 
 =head1 DESCRIPTION
+
+This perl script is similar to the scorer2 C program. Given an answer file and 
+a key file, this program scores the answers against the key and gives the overall 
+precision, recall and F-measure. It also gives results for different part of speech tags. 
+At the end it displays the confusion matrix which presents the errors in identifying part 
+of speech tags. 
 
 =head1 scorer2
 
@@ -352,7 +358,7 @@ L<http://www.senseval.org/senseval3/scoring>
  <tpederse at d.umn.edu>
 
 This document last modified by : 
-$Id: allwords-scorer2.pl,v 1.2 2009/02/11 02:50:33 kvarada Exp $
+$Id: allwords-scorer2.pl,v 1.4 2009/03/17 00:05:26 kvarada Exp $
 
 =head1 SEE ALSO
 

@@ -300,9 +300,25 @@ sentence. For example:
    Red cars are faster than white cars.  
    However, white cars are less expensive.
 
-Punctuation will be ignored, and compounds known to WordNet will be 
-identified automatically (e.g., 'winston churchill' will be recognized 
-as a compound and converted to winston_churchill).
+Except for a few cases, punctuation will be ignored and will be replaced with a space character. 
+The compounds known to WordNet will be identified automatically (e.g., 'winston churchill' will be 
+recognized as a compound and converted to winston_churchill).
+
+All characters other than the characters from the set {\s,-,a-z,A-Z,0-9,_,',\n} will be removed 
+from words except for the user identified compound words. For example, consider the following 
+sentence
+
+St._Petersburg is a city in Pinellas County, Florida, United States.
+
+In this sentence, the period from the word St._Petersburg will not be removed. However, the period
+from 'United States.' will be removed. If the user identified compound occurs at the end of the 
+sentence, for example 'St._Petersburg.', then the period at the end of the compound is considered 
+as the end of sentence marker and will be removed. 
+
+Punctuation will not be removed for the words 'i.e.' and 'et_al.' because in this case, if the puctuation 
+is removed, 'i.e.' will be treated as two different words 'i' and 'e'. This is not expected as i.e. and et_al. 
+are defined by WordNet. We include these two words because we found those in SemCor 3.0 while doing the 
+experiments. If your text has words like this then you can include those in wsd.pl code. 
 
 =item tagged
 
@@ -451,7 +467,7 @@ There are several mailing lists for SenseRelate :
 
 Last updated by :
 
-# $Id: README.pod,v 1.13 2009/02/13 15:43:12 kvarada Exp $
+# $Id: README.pod,v 1.14 2009/03/16 23:33:25 kvarada Exp $
 
 =head1 COPYRIGHT
 

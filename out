@@ -1,0 +1,233 @@
+star#n#1 movie#n#1 friday#n#1 probe#n#1 atlanta#n#2 late#a#NR primary#n#NR produce#v#NR evidence#n#NR abnormality#n#4 happen#v#NR 
+Context: <target>star#n</target> movie#n
+  Scores for star#n
+    star#n#1: 0.0813853841076393
+      star#n#1 movie#n#1 0.0813853841076393
+    star#n#2: 0.0727084710953255
+      star#n#2 movie#n#1 0.0727084710953255
+    star#n#3: 0.0660508527090347
+      star#n#3 movie#n#1 0.0660508527090347
+    star#n#4: 0.0683572586080863
+      star#n#4 movie#n#1 0.0683572586080863
+    star#n#5: 0.0597883660503967
+      star#n#5 movie#n#1 0.0597883660503967
+    star#n#6: 0
+      star#n#6 movie#n#1 0
+    star#n#7: 0.0597883660503967
+      star#n#7 movie#n#1 0.0597883660503967
+    star#n#8: 0
+      star#n#8 movie#n#1 0
+  Winning score: 0.0813853841076393
+Context: star#n <target>movie#n</target>
+  Scores for movie#n
+    movie#n#1: 0.0813853841076393
+      movie#n#1 star#n#1 0.0813853841076393
+      movie#n#1 star#n#2 0.0727084710953255
+      movie#n#1 star#n#3 0.0660508527090347
+      movie#n#1 star#n#4 0.0683572586080863
+      movie#n#1 star#n#5 0.0597883660503967
+      movie#n#1 star#n#6 0
+      movie#n#1 star#n#7 0.0597883660503967
+      movie#n#1 star#n#8 0
+  Winning score: 0.0813853841076393
+Context: movie#n <target>friday#n</target>
+  Scores for friday#n
+    friday#n#1: 0.0688305268705303
+      friday#n#1 movie#n#1 0.0688305268705303
+  Winning score: 0.0688305268705303
+Context: friday#n <target>probe#n</target>
+  Scores for probe#n
+    probe#n#1: 0.0613131101747991
+      probe#n#1 friday#n#1 0.0613131101747991
+    probe#n#2: 0
+      probe#n#2 friday#n#1 0
+    probe#n#3: 0
+      probe#n#3 friday#n#1 0
+    probe#n#4: 0
+      probe#n#4 friday#n#1 0
+  Winning score: 0.0613131101747991
+Context: probe#n <target>atlanta#n</target>
+  Scores for atlanta#n
+    atlanta#n#1: 0.0531546745867785
+      atlanta#n#1 probe#n#1 0.0531546745867785
+      atlanta#n#1 probe#n#2 0
+      atlanta#n#1 probe#n#3 0
+      atlanta#n#1 probe#n#4 0
+    atlanta#n#2: 0.0581419121351083
+      atlanta#n#2 probe#n#1 0.0581419121351083
+      atlanta#n#2 probe#n#2 0
+      atlanta#n#2 probe#n#3 0
+      atlanta#n#2 probe#n#4 0
+  Winning score: 0.0581419121351083
+Context: atlanta#n <target>late#a</target>
+  Scores for late#a
+    late#a#1: 0
+      late#a#1 atlanta#n#1 -1000000
+      late#a#1 atlanta#n#2 undef
+    late#a#2: 0
+      late#a#2 atlanta#n#1 -1000000
+      late#a#2 atlanta#n#2 undef
+    late#a#3: 0
+      late#a#3 atlanta#n#1 -1000000
+      late#a#3 atlanta#n#2 undef
+    late#a#4: 0
+      late#a#4 atlanta#n#1 -1000000
+      late#a#4 atlanta#n#2 undef
+    late#a#5: 0
+      late#a#5 atlanta#n#1 -1000000
+      late#a#5 atlanta#n#2 undef
+    late#a#6: 0
+      late#a#6 atlanta#n#1 -1000000
+      late#a#6 atlanta#n#2 undef
+    late#a#7: 0
+      late#a#7 atlanta#n#1 -1000000
+      late#a#7 atlanta#n#2 undef
+  Winning score: -1
+Context: late#a <target>primary#n</target>
+  Scores for primary#n
+    primary#n#1: 0
+      primary#n#1 late#a#1 -1000000
+      primary#n#1 late#a#2 undef
+      primary#n#1 late#a#3 -1000000
+      primary#n#1 late#a#4 undef
+      primary#n#1 late#a#5 -1000000
+      primary#n#1 late#a#6 undef
+      primary#n#1 late#a#7 -1000000
+    primary#n#2: 0
+      primary#n#2 late#a#1 undef
+      primary#n#2 late#a#2 -1000000
+      primary#n#2 late#a#3 undef
+      primary#n#2 late#a#4 -1000000
+      primary#n#2 late#a#5 undef
+      primary#n#2 late#a#6 -1000000
+      primary#n#2 late#a#7 undef
+    primary#n#3: 0
+      primary#n#3 late#a#1 -1000000
+      primary#n#3 late#a#2 undef
+      primary#n#3 late#a#3 -1000000
+      primary#n#3 late#a#4 undef
+      primary#n#3 late#a#5 -1000000
+      primary#n#3 late#a#6 undef
+      primary#n#3 late#a#7 -1000000
+    primary#n#4: 0
+      primary#n#4 late#a#1 undef
+      primary#n#4 late#a#2 -1000000
+      primary#n#4 late#a#3 undef
+      primary#n#4 late#a#4 -1000000
+      primary#n#4 late#a#5 undef
+      primary#n#4 late#a#6 -1000000
+      primary#n#4 late#a#7 undef
+  Winning score: -1
+Context: primary#n <target>produce#v</target>
+  Scores for produce#v
+    produce#v#1: 0
+      produce#v#1 primary#n#1 -1000000
+      produce#v#1 primary#n#2 undef
+      produce#v#1 primary#n#3 -1000000
+      produce#v#1 primary#n#4 undef
+    produce#v#2: 0
+      produce#v#2 primary#n#1 -1000000
+      produce#v#2 primary#n#2 undef
+      produce#v#2 primary#n#3 -1000000
+      produce#v#2 primary#n#4 undef
+    produce#v#3: 0
+      produce#v#3 primary#n#1 -1000000
+      produce#v#3 primary#n#2 undef
+      produce#v#3 primary#n#3 -1000000
+      produce#v#3 primary#n#4 undef
+    produce#v#4: 0
+      produce#v#4 primary#n#1 -1000000
+      produce#v#4 primary#n#2 undef
+      produce#v#4 primary#n#3 -1000000
+      produce#v#4 primary#n#4 undef
+    produce#v#5: 0
+      produce#v#5 primary#n#1 -1000000
+      produce#v#5 primary#n#2 undef
+      produce#v#5 primary#n#3 -1000000
+      produce#v#5 primary#n#4 undef
+    produce#v#6: 0
+      produce#v#6 primary#n#1 -1000000
+      produce#v#6 primary#n#2 undef
+      produce#v#6 primary#n#3 -1000000
+      produce#v#6 primary#n#4 undef
+    produce#v#7: 0
+      produce#v#7 primary#n#1 -1000000
+      produce#v#7 primary#n#2 undef
+      produce#v#7 primary#n#3 -1000000
+      produce#v#7 primary#n#4 undef
+  Winning score: -1
+Context: produce#v <target>evidence#n</target>
+  Scores for evidence#n
+    evidence#n#1: 0
+      evidence#n#1 produce#v#1 -1000000
+      evidence#n#1 produce#v#2 undef
+      evidence#n#1 produce#v#3 -1000000
+      evidence#n#1 produce#v#4 undef
+      evidence#n#1 produce#v#5 -1000000
+      evidence#n#1 produce#v#6 undef
+      evidence#n#1 produce#v#7 -1000000
+    evidence#n#2: 0
+      evidence#n#2 produce#v#1 undef
+      evidence#n#2 produce#v#2 -1000000
+      evidence#n#2 produce#v#3 undef
+      evidence#n#2 produce#v#4 -1000000
+      evidence#n#2 produce#v#5 undef
+      evidence#n#2 produce#v#6 -1000000
+      evidence#n#2 produce#v#7 undef
+    evidence#n#3: 0
+      evidence#n#3 produce#v#1 -1000000
+      evidence#n#3 produce#v#2 undef
+      evidence#n#3 produce#v#3 -1000000
+      evidence#n#3 produce#v#4 undef
+      evidence#n#3 produce#v#5 -1000000
+      evidence#n#3 produce#v#6 undef
+      evidence#n#3 produce#v#7 -1000000
+  Winning score: -1
+Context: evidence#n <target>abnormality#n</target>
+  Scores for abnormality#n
+    abnormality#n#1: 0.0688249829730692
+      abnormality#n#1 evidence#n#1 undef
+      abnormality#n#1 evidence#n#2 0.0688249829730692
+      abnormality#n#1 evidence#n#3 0.0585399998448323
+    abnormality#n#2: 0
+      abnormality#n#2 evidence#n#1 0
+      abnormality#n#2 evidence#n#2 0
+      abnormality#n#2 evidence#n#3 0
+    abnormality#n#3: 0
+      abnormality#n#3 evidence#n#1 0
+      abnormality#n#3 evidence#n#2 0
+      abnormality#n#3 evidence#n#3 0
+    abnormality#n#4: 0.0743343092567856
+      abnormality#n#4 evidence#n#1 0.0743343092567856
+      abnormality#n#4 evidence#n#2 0.0650325904968197
+      abnormality#n#4 evidence#n#3 0.0557735845076729
+  Winning score: 0.0743343092567856
+Context: abnormality#n <target>happen#v</target>
+  Scores for happen#v
+    happen#v#1: 0
+      happen#v#1 abnormality#n#1 -1000000
+      happen#v#1 abnormality#n#2 undef
+      happen#v#1 abnormality#n#3 -1000000
+      happen#v#1 abnormality#n#4 undef
+    happen#v#2: 0
+      happen#v#2 abnormality#n#1 -1000000
+      happen#v#2 abnormality#n#2 undef
+      happen#v#2 abnormality#n#3 -1000000
+      happen#v#2 abnormality#n#4 undef
+    happen#v#3: 0
+      happen#v#3 abnormality#n#1 -1000000
+      happen#v#3 abnormality#n#2 undef
+      happen#v#3 abnormality#n#3 -1000000
+      happen#v#3 abnormality#n#4 undef
+    happen#v#4: 0
+      happen#v#4 abnormality#n#1 -1000000
+      happen#v#4 abnormality#n#2 undef
+      happen#v#4 abnormality#n#3 -1000000
+      happen#v#4 abnormality#n#4 undef
+    happen#v#5: 0
+      happen#v#5 abnormality#n#1 -1000000
+      happen#v#5 abnormality#n#2 undef
+      happen#v#5 abnormality#n#3 -1000000
+      happen#v#5 abnormality#n#4 undef
+  Winning score: -1
+

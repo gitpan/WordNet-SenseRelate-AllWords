@@ -1,6 +1,6 @@
 --- #YAML:1.0
 name:                WordNet-SenseRelate-AllWords
-version:             0.16
+version:             0.17
 abstract:            Disambiguate All Words in a Text based on semantic similarity and relatedness in WordNet 
 license:             gpl
 author:              

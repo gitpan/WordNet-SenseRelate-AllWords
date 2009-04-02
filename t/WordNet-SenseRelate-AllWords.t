@@ -1,5 +1,5 @@
 
-# $Id: WordNet-SenseRelate-AllWords.t,v 1.19 2008/09/09 20:17:42 kvarada Exp $
+# $Id: WordNet-SenseRelate-AllWords.t,v 1.20 2009/04/02 13:03:07 kvarada Exp $
 
 # DO NOT ADD NEW TESTS TO THIS .t FILE unless you test with version
 # 2.0 and 2.1. If you have new tests, please create a new .t file
@@ -130,7 +130,7 @@ my $str = $obj->getTrace ();
 
 ok ($str);
 
-@expected = qw/my#CL cat#n#1 be#v#1 a#CL wise#a#1 cat#n#7/;
+@expected = qw/my#CL cat#n#NR be#v#1 a#CL wise#a#1 cat#n#7/;
 
 for my $i (0..$#expected) {
 	is ($res[$i], $expected[$i]);

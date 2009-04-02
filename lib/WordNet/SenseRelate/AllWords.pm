@@ -1,6 +1,6 @@
 package WordNet::SenseRelate::AllWords;
 
-# $Id: AllWords.pm,v 1.32 2009/03/17 03:33:02 kvarada Exp $
+# $Id: AllWords.pm,v 1.35 2009/04/02 12:50:14 kvarada Exp $
 
 =head1 NAME
 
@@ -60,7 +60,7 @@ use Carp;
 
 our @ISA = ();
 
-our $VERSION = '0.16';
+our $VERSION = '0.17';
 
 my %wordnet;
 my %wntools;
@@ -624,9 +624,6 @@ sub doNormal {
     # if we didn't use sense1 on the first word, the first word in a sentence
     # will never be assigned a sense number when the window is 2
     my $sense1firstword = 0;
-    if (($rwindow == 0) && ($lwindow == 1)) {
-	$sense1firstword = 1;
-    }
 
     # for each word in the context, disambiguate the (target) word
     for my $targetIdx (0..$#context) {
@@ -662,6 +659,15 @@ sub doNormal {
 		$upper++;
 	    }
 	    $j++;
+	}
+
+    # If it is the first word in a sentence and the window size is 2, we'll 
+    # consider a word at the right of the target word. Otherwise it will not be 
+    # assigned any sense. In the previous version we were simply doing sense1 
+    # which gave a boost to window=2 results. 
+
+	if ($targetIdx==0 && $window == 2){
+		$upper=1;
 	}
 
 	# do some tracing

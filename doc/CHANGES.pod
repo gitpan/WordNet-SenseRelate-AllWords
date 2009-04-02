@@ -6,6 +6,24 @@ CHANGES - Revision history for WordNet::SenseRelate::AllWords
 
 =over
 
+=item 0.17
+
+Date : April 2, 2009 
+
+=over
+
+=item 1) 
+
+Fixed AllWords.pm for window=2.  If it is the first word in a sentence and the window size is 2, 
+we now consider a word at the right of the target word. Otherwise it will not be assigned any sense. 
+In the previous version we were simply doing sense1 for such scenario. 
+
+=item 2) 
+
+Added a script calculate-corpus-stats.pl to utils/ which gives statistics of the reformatted corpus.  
+
+=back 
+
 =item 0.16
 
 Date : March 16, 2009 
@@ -471,7 +489,7 @@ original version; created by h2xs 1.23 with options
  tpederse at d.umn.edu
 
 This document last modified by :
-$Id: CHANGES.pod,v 1.18 2009/03/17 03:37:17 kvarada Exp $
+$Id: CHANGES.pod,v 1.19 2009/04/02 12:46:15 kvarada Exp $
 
 =head1 SEE ALSO
 

@@ -2,6 +2,34 @@ NAME
     CHANGES - Revision history for WordNet::SenseRelate::AllWords
 
 DESCRIPTION
+    0.18
+        Date : April 30, 2009
+
+        1)  Added following options to wsd.pl
+
+            --usemono enable assigning the only available sense to monosemy
+            words
+
+            This is a change in AllWords.pm, where we assign the available
+            sense to monosemy words. This results in increased precision and
+            overall fmeasure because many measures can not get these words
+            right as they can't find relatedness with the surrounding words.
+
+        2) Added following options to allwords-scorer2.pl
+
+            1. --word score only this specific instance
+            2. --exceptword score all instances except for these instances
+            3. --score poly score only polysemes instances
+            4. --score s1nc score only the instances where the most frequent
+            sense is not correct
+            5. --score n score only the instances having n number of senses
+
+            These options are added in order to carry different experiments.
+
+        3)  Fixed the script calculate-corpus-stats.pl. This is a perl
+            script that gives corpus statistics given a semcor-reformatted
+            corpus file.
+
     0.17
         Date : April 2, 2009
 
@@ -275,8 +303,8 @@ AUTHORS
      Ted Pedersen, University of Minnesota, Duluth
      tpederse at d.umn.edu
 
-    This document last modified by : $Id: CHANGES.pod,v 1.18 2009/03/17
-    03:37:17 kvarada Exp $
+    This document last modified by : $Id: CHANGES.pod,v 1.21 2009/04/30
+    23:21:06 kvarada Exp $
 
 SEE ALSO
     README, INSTALL, TODO

@@ -3,6 +3,9 @@
 use strict;
 use warnings;
 use Getopt::Long;
+use WordNet::QueryData;
+
+my $qd = WordNet::QueryData->new;
 
 my %nounhash;
 my %verbhash;
@@ -16,16 +19,25 @@ my $global_score=0;
 my $diffpos=0;
 my $ansf;
 my $keyf;
+my $targetword;
+my @exceptwords;
+my $score;
+my $s1nc;
 my $help;
 my $version;
 
 my $ok = GetOptions (
 		     'ansfile=s' => \$ansf,
 		     'keyfile=s' => \$keyf,
+		     'word=s' => \$targetword,
+		     'exceptword=s' => \@exceptwords,
+		     'score=s' => \$score,
+		     s1nc => \$s1nc,
 		     help => \$help,
 		     version => \$version,
 		     );
 $ok or exit 1;
+
 
 if ($help) {
     showUsage ("Long");
@@ -34,7 +46,7 @@ if ($help) {
 
 if ($version) {
     print "allwords-scorer2.pl - allwords scorer2 perl program\n";
-    print 'Last modified by : $Id: allwords-scorer2.pl,v 1.4 2009/03/17 00:05:26 kvarada Exp $';
+    print 'Last modified by : $Id: allwords-scorer2.pl,v 1.9 2009/04/30 21:48:54 kvarada Exp $';
     print "\n";
     exit;
 }
@@ -61,7 +73,25 @@ initializeHashes();
 
 foreach my $k (@key)
 {
+	my $exceptwordflag=0;
 	my ($word,$pos,$kid,$sense)=($k =~ /(\S+).([a|n|r|v]) (\d+) (\d+)/);
+	next if(defined $targetword && $word ne $targetword);
+	foreach my $ew (@exceptwords, @ARGV){
+			$exceptwordflag = 1 if($word eq $ew);
+	}
+	next if($exceptwordflag == 1);
+
+	if(defined $score){
+		my $checkinst="$word"."#"."$pos";
+		my @senses=$qd->querySense($checkinst);
+		if($score eq "poly"){
+			next if($#senses <= 0);
+		}elsif($score eq "s1nc"){
+			next if($sense == 1);
+		}else{
+			next if(($#senses + 1) ne $score);	
+		}			
+	}	
 	$instances++;
 	if(!defined $ans{$kid})
 	{
@@ -169,9 +199,22 @@ foreach my $k (@key)
 
 }#foreach end
 
+die "No instances attempted to evaluate...\n" if($instances == 0);
+
 my $precision;
 my $recall;
 my $fmeasure;
+
+if(defined $score){
+	if($score eq "poly"){
+		print "\nScoring only polysemes.\n";
+	}elsif($score eq "s1nc"){
+		print "\nScoring only the instances where the most frequent sense is not correct.\n";	
+	}else{
+		print "\nScoring only the instances with $score number of senses.\n";	
+	}
+}
+
 
 my $instances_attempted=$instances - $skipped;
 eval{$precision=$global_score / $instances_attempted;};
@@ -179,6 +222,7 @@ $precision=0 if($@);
 eval{$recall=$global_score / $instances;};
 $recall=0 if($@);
 print "\nscore for \"$ansf\" using key \"$keyf\" :";
+print " \nResults for the word \"$targetword\"\n" if defined $targetword;
 printf "\n precision: %.3f", $precision;
 print " ($global_score correct of $instances_attempted attempted.)";
 printf "\n recall: %.3f",$recall; 
@@ -312,13 +356,20 @@ sub initializeHashes
 sub showUsage
 {
     my $long = shift;
-    print "Usage: allwords-scorer2.pl --ansfile FILE --keyfile FILE | {--help | --version}\n";
+    print "Usage: allwords-scorer2.pl --ansfile FILE --keyfile FILE\n";
+    print "                           [--word WORD] [--exceptword WORD [WORD ...]]\n";
+    print "                           [--score poly|s1nc|n]| {--help | --version}\n";
 
     if ($long) 
     {
 	print "Options:\n";
        print "\t--ansfile            name of a file containing formatted answers\n";
 	print "\t--keyfile            name of an answer-key file\n";
+	print "\t--word               specific instance to score\n";
+	print "\t--exceptword         score all instances except for these instances\n";
+	print "\t--score poly         score only polysemes instances\n";
+	print "\t        s1nc         score only the instances where the most frequent sense is not correct\n";
+	print "\t           n         score only the instances having n number of sense\n"; 
 	print "\t--help               show this help message\n";
 	print "\t--version            show version information\n";
     }
@@ -342,6 +393,37 @@ precision, recall and F-measure. It also gives results for different part of spe
 At the end it displays the confusion matrix which presents the errors in identifying part 
 of speech tags. 
 
+=item --ansfile
+
+name of a file containing formatted answers
+
+=item --keyfile
+
+name of an answer-key file
+
+=item --word
+
+specific instance to score
+
+For example, allwords-scorer2.pl --ansfile FILE --keyfile FILE --word have
+
+=item --exceptword
+
+score allinstances except for these instances. Give a comma separated list of words 
+if you want to use multiple words. For example, 
+
+./allwords-scorer2.pl --ansfile test.out --keyfile test.key --exceptword have, make, see
+
+
+=item --score
+
+Score only specific instances. Valid options are 
+
+--score poly score only polysemes instances
+--score s1nc score only the instances where the most frequent sense is not correct
+--score n    score only the instances having n number of sense 
+
+
 =head1 scorer2
 
 scorer2 is a C program used to score entries to Senseval.  The source
@@ -358,7 +440,7 @@ L<http://www.senseval.org/senseval3/scoring>
  <tpederse at d.umn.edu>
 
 This document last modified by : 
-$Id: allwords-scorer2.pl,v 1.4 2009/03/17 00:05:26 kvarada Exp $
+$Id: allwords-scorer2.pl,v 1.9 2009/04/30 21:48:54 kvarada Exp $
 
 =head1 SEE ALSO
 

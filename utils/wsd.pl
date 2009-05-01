@@ -1,5 +1,5 @@
 #!/usr/bin/perl
-# $Id: wsd.pl,v 1.32 2009/03/16 21:22:42 kvarada Exp $
+# $Id: wsd.pl,v 1.36 2009/04/30 22:20:26 kvarada Exp $
 
 use strict;
 use warnings;
@@ -18,6 +18,7 @@ our $contextScore = 0;
 our $pairScore = 0;
 our $glosses;
 our $nocompoundify;
+our $usemono;
 our $trace;
 our $help;
 our $version;
@@ -43,6 +44,7 @@ my $ok = GetOptions ('type|measure=s' => \$measure,
 		     forcepos => \$forcepos,
 		     glosses => \$glosses,
 		     nocompoundify => \$nocompoundify,
+		     usemono => \$usemono,
 		     'trace=i' => \$trace,
 		     help => \$help,
 		     version => \$version,
@@ -58,7 +60,7 @@ if ($help) {
 
 if ($version) {
     print "wsd.pl - assign a sense to all words in a context\n";
-    print 'Last modified by : $Id: wsd.pl,v 1.32 2009/03/16 21:22:42 kvarada Exp $';
+    print 'Last modified by : $Id: wsd.pl,v 1.36 2009/04/30 22:20:26 kvarada Exp $';
     print "\n";
     exit;
 }
@@ -105,6 +107,7 @@ if ($window < 2) {
 	print STDERR "    measure config: ", ($mconfig ? $mconfig : '(none)'), "\n";
 	print STDERR "    glosses       : ", ($glosses ? "yes" : "no"), "\n";
 	print STDERR "    nocompoundify : ", ($nocompoundify ? "yes" : "no"), "\n";
+	print STDERR "    usemono      : ", ($usemono ? "yes" : "no"), "\n";
 	print STDERR "    trace         : ", ($trace ? $trace : "no"), "\n";
 	print STDERR "    forcepos      : ", ($forcepos ? "yes" : "no"), "\n";
     }
@@ -145,6 +148,7 @@ $options{contextScore} = $contextScore if defined $contextScore;
 $options{outfile} = $outfile if defined $outfile;
 $options{forcepos} = $forcepos if defined $forcepos;
 $options{nocompoundify} = $nocompoundify if defined $nocompoundify;
+$options{usemono} = $usemono if defined $usemono;
 $options{wnformat} = 1 if $format eq 'wntagged';
 
 my $sr = WordNet::SenseRelate::AllWords->new (%options);
@@ -326,34 +330,35 @@ sub showUsage
     print "              [--type MEASURE] [--config FILE] \n";
     print "              [--stoplist file] [--window INT] [--contextScore NUM]\n";
     print "              [--pairScore NUM] [--outfile FILE] [--trace INT] \n";
-    print "              [--glosses][--forcepos][--nocompoundify] \n";
+    print "              [--glosses][--forcepos][--nocompoundify][--usemono] \n";
     print "              | {--help | --version}\n";
 
     if ($long) {
 	print "Options:\n";
 	print "\t--context FILE       a file containing the text to be disambiguated\n";
 	print "\t--format FORMAT      type of --context ('raw', 'tagged',\n";
-        print "\t                       or 'wntagged')\n";
+       print "\t                     or 'wntagged')\n";
 	print "\t--scheme SCHEME      disambiguation scheme to use. ('normal', \n";
-	print "\t                       'fixed', 'sense1', or 'random')\n";
+	print "\t                     'fixed', 'sense1', or 'random')\n";
 	print "\t--type MEASURE       the relatedness measure to use\n";
 	print "\t--config FILE        a configuration file for the relatedness measure\n";
 	print "\t--stoplist FILE      a file of regular expressions that define\n";
-	print "\t                       the words to be excluded from --context\n";
+	print "\t                     the words to be excluded from --context\n";
 	print "\t--window INT         window of context will include INT words\n";
-	print "\t                       in all, including the target word.\n";
+	print "\t                     in all, including the target word.\n";
 	print "\t--contextScore NUM   the  minimum required of a winning score\n";
-	print "\t                       to assign a sense to a target word\n";
+	print "\t                     to assign a sense to a target word\n";
 	print "\t--pairScore NUM      the minimum pairwise threshold when\n";
-	print "\t                       measuring target and word in window\n";
+	print "\t                     measuring target and word in window\n";
 	print "\t--outfile FILE       create a file with one word-sense per line\n";
 	print "\t--trace INT          set trace levels. greater values show more\n";
-	print "\t                       detail. may be summed to combine output. \n";
+	print "\t                     detail. may be summed to combine output. \n";
 	print "\t--glosses            show glosses of each disambiguated word\n";
-        print "\t--forcepos           force all words in window of context\n";
-        print "\t--nocompoundify      disable compoundify\n";
-        print "\t                       to be same pos as target (pos coercion)\n";
-	print "\t                       are assigned\n";
+       print "\t--forcepos           force all words in window of context\n";
+       print "\t                     to be same pos as target (pos coercion)\n";
+	print "\t                     are assigned\n";
+       print "\t--nocompoundify      disable compoundify\n";
+       print "\t--usemono            enable assigning the only available sense to monosemy words\n";
 	print "\t--help               show this help message\n";
 	print "\t--version            show version information\n";
     }
@@ -370,7 +375,7 @@ wsd.pl - automatically assign a meaning to every word in a text
  wsd.pl --context FILE --format FORMAT [--scheme SCHEME] [--type MEASURE] 
            [--config FILE] [--stoplist FILE] 
            [--window INT] [--contextScore NUM] [--pairScore NUM] 
-           [--outfile FILE] [--trace INT] [--forcepos] [--nocompoundify]
+           [--outfile FILE] [--trace INT] [--forcepos] [--nocompoundify] [--usemono]
 		| --help | --version
 
 =head1 DESCRIPTION
@@ -524,6 +529,11 @@ only works with noun-noun and verb-verb pairs.
 
 Disable compoundifying. By default AllWords.pm compoundifes the input raw text. 
 Using this option will disable this. 
+
+=item --usemono
+
+If this flag is on the only available sense is assignsed to the usemono words. 
+By default this flag is off. 
 
 =back
 

@@ -24,8 +24,12 @@ my $window = 3;
 my $sense1 = 0;
 my $random = 0;
 my $pairScore = 0;
+my $contextScor =0;
 my $forcepos = 0;
 my $nocompoundify = 0;
+my $usemono = 0;
+my $score;
+my $s1nc;
 my $contextScore = 0;
 my $devnull; # null device; name varies on different systems
 my $tracefile = $devnull = File::Spec->devnull;
@@ -54,8 +58,10 @@ my $res = GetOptions ('type=s' => \$measure,
 		      'window=i' => \$window,
 		      'forcepos' => \$forcepos,
 		      'nocompoundify' => \$nocompoundify,
+		      'usemono' => \$usemono,
+		      'score=s' => \$score,		      	
 		      'pairScore=f' => \$pairScore,
-		      'contextScore=f' => \$pairScore,
+		      'contextScore=f' => \$contextScore,
                     'basename=s' => \$basename,
 		      'bg' => \$bg,
 		       help => \$help,
@@ -73,7 +79,7 @@ if ($help) {
 
 if ($version) {
     print "wsd-experiments.pl - driver for running wsd experiments\n";
-    print 'Last modified by : $Id: wsd-experiments.pl,v 1.11 2009/02/13 14:49:10 kvarada Exp $';
+    print 'Last modified by : $Id: wsd-experiments.pl,v 1.16 2009/04/30 22:20:34 kvarada Exp $';
     print "\n";
     exit;
 }
@@ -242,6 +248,7 @@ $options .= " --config $config" if $config;
 $options .= " --stoplist $stoplist" if $stoplist;
 $options .= " --scheme $scheme";
 $options .= " --nocompoundify" if $nocompoundify;
+$options .= " --usemono" if $usemono;
 $options .= " --forcepos" if $forcepos;
 
 $options .= " --type $measure" if $measure;
@@ -295,7 +302,12 @@ if (-z $outfile) {
 
 #unlink $t2;
 
-my $scorer_out = `allwords-scorer2.pl --ansfile $outfile --keyfile=$tkey`;
+my $scorer_out;
+if(defined $score){
+	$scorer_out = `allwords-scorer2.pl --ansfile $outfile --keyfile $tkey --score $score`;
+}else{
+	$scorer_out = `allwords-scorer2.pl --ansfile $outfile --keyfile $tkey`;
+}
 
 print $scorer_out;
 print TFH $scorer_out;
@@ -326,7 +338,8 @@ sub usage
     print "Usage: wsd-experiments.pl {--type=MEASURE | --sense1 | --random} --basename=outputfile\n";
     print "                         {--semcor DIR | --file FILE [FILE ...]}\n";
     print "                         [--config=FILE] [--window=INT] [stoplist=FILE]\n";
-    print "                         [--contextScore NUM] [--pairScore NUM] [--forcepos][--nocompoundify]\n";
+    print "                         [--contextScore NUM] [--pairScore NUM] [--forcepos]\n";
+    print "                         [--nocompoundify][--usemono][--score poly|s1nc|n]\n";
     print "                         | {--help | --version}\n";
     if ($long) {
 	print "Options:\n";
@@ -347,6 +360,10 @@ sub usage
 	print "\t                     measuring target and word in window\n";
        print "\t--forcepos           force all words in window of context\n";
        print "\t--nocompoundify      disable compoundifying\n";
+       print "\t--usemono            enable assigning the only available sense to monosemy words\n";
+	print "\t--score poly         score only polysemes instances\n";
+	print "\t        s1nc         score only the instances where the most frequent sense is not correct\n";
+	print "\t           n         score only the instances having n number of sense\n"; 
        print "\t                     to be same pos as target (pos coercion)\n";
 	print "\t                     are assigned\n";
 	print "\t--help               show this help message\n";
@@ -363,7 +380,7 @@ wsd-experiments.pl - driver for running wsd experiments
 wsd-experiments.pl {--type=MEASURE | --sense1 | --random} --basename=outputfile
                   {--semcor DIR | --file FILE [FILE ...]}
                   [--config=FILE] [--window=INT] [stoplist=FILE]
-                  [--contextScore NUM] [--pairScore NUM] [--forcepos][--nocompoundify]
+                  [--contextScore NUM] [--pairScore NUM] [--forcepos][--nocompoundify][--usemono][--score]
                   | {--help | --version}
 		    
 
@@ -516,6 +533,19 @@ only works with noun-noun and verb-verb pairs.
 Disable compoundifying. By default compoundifying is enabled. Using this option
 will disable it. 
 
+=item --usemono
+
+If this flag is on the only available sense is assignsed to the monosemy words. 
+By default this flag is off. 
+
+=item --score
+
+Score only specific instances. Valid options are 
+
+--score poly score only polysemes instances
+--score s1nc score only the instances where the most frequent sense is not correct
+--score n    score only the instances having n number of sense 
+
 =back
 
 
@@ -530,7 +560,7 @@ will disable it.
  tpederse at d.umn.edu
 
 This document last modified by : 
-$Id: wsd-experiments.pl,v 1.11 2009/02/13 14:49:10 kvarada Exp $
+$Id: wsd-experiments.pl,v 1.16 2009/04/30 22:20:34 kvarada Exp $
 
 =head1 SEE ALSO
 

@@ -1,6 +1,6 @@
 package WordNet::SenseRelate::AllWords;
 
-# $Id: AllWords.pm,v 1.35 2009/04/02 12:50:14 kvarada Exp $
+# $Id: AllWords.pm,v 1.37 2009/04/30 22:14:26 kvarada Exp $
 
 =head1 NAME
 
@@ -60,7 +60,7 @@ use Carp;
 
 our @ISA = ();
 
-our $VERSION = '0.17';
+our $VERSION = '0.18';
 
 my %wordnet;
 my %wntools;
@@ -72,6 +72,7 @@ my %trace;
 my %outfile;
 my %forcepos;
 my %nocompoundify;
+my %monosemy;
 my %wnformat;
 my %fixed;
 
@@ -156,6 +157,7 @@ Parameters:
   trace        => INTEGER   : generate traces (default: 0)
   forcepos     => INTEGER   : do part-of-speech coercion (default: 0)
   nocompoundify => INTEGER  : disable compoundify (default: 0)
+  monosemy => INTEGER  : enable assigning the available sense to monosemy (default: 0)
 
 Returns:
 
@@ -206,7 +208,8 @@ sub new
     my $trace;
     my $outfile;
     my $forcepos;
-    my $nocompoundify;
+    my $nocompoundify=0;
+    my $monosemy=0;
     my $fixed = 0;
     my $wnformat = 0;
 
@@ -235,6 +238,9 @@ sub new
 	}
 	elsif($key eq 'nocompoundify'){
 	    $nocompoundify=$val;	
+	}
+	elsif($key eq 'monosemy'){
+	    $monosemy=$val;	
 	}
 	elsif ($key eq 'trace') {
 	    $trace = $val;
@@ -339,6 +345,15 @@ sub new
 	$nocompoundify{$self} = 0;
     }
 
+    if (defined $monosemy) {
+	$monosemy{$self} = $monosemy;
+    }
+    else {
+	$monosemy{$self} = 0;
+    }
+
+
+
 
     $fixed{$self} = $fixed;
 
@@ -362,6 +377,7 @@ sub DESTROY
     delete $outfile{$self};
     delete $forcepos{$self};
     delete $nocompoundify{$self};
+    delete $monosemy{$self};
     delete $wnformat{$self};
     delete $fixed{$self};
 
@@ -620,9 +636,6 @@ sub doNormal {
 
     local $| = 1;
 
-    # here we need to do sense 1 if the window is 2 and target is first word
-    # if we didn't use sense1 on the first word, the first word in a sentence
-    # will never be assigned a sense number when the window is 2
     my $sense1firstword = 0;
 
     # for each word in the context, disambiguate the (target) word
@@ -1039,6 +1052,8 @@ sub _normalDisambig
     my $senses_ref = shift;
     my $context_ref = shift;
     my $measure = $simMeasure{$self};
+    my $monosemy = $monosemy{$self};
+	
     my $result;
 
     my @traces;
@@ -1052,6 +1067,12 @@ sub _normalDisambig
 	    next;
 	}
 	$target_scores[$i] = 0;
+	# If --usemono flag is on and the word has only one sense then assign it.
+	# This flag will be off by default.
+	if($monosemy == 1 && $#{$senses_ref->[$targetIdx]} == 0){
+		$result = $senses_ref->[$targetIdx][0];
+		return $result;
+	}
 	#my @tempScores;
 	    
 
@@ -1160,7 +1181,6 @@ sub _normalDisambig
 #	}
 #	@traces = ();
 #    }
-
     return $result;
 }
 
@@ -1442,6 +1462,8 @@ L<http://www.msi.umn.edu/general/Reports/rptfiles/2005-25.pdf>
 =head1 AUTHORS
 
 Jason Michelizzi, E<lt>jmichelizzi at users.sourceforge.netE<gt>
+
+Varada Kolhatkar, E<lt>kolha002 at d.umn.eduE<gt>
 
 Ted Pedersen, E<lt>tpederse at d.umn.eduE<gt>
 

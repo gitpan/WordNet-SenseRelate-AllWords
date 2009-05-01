@@ -20,7 +20,7 @@ $poshash{adverbs}=0;
 
 
 my $ok = GetOptions (
-		     'file' => \$file,
+		     'file=s' => \$file,
 		     help => \$help,
 		     version => \$version,
 		     );
@@ -33,7 +33,7 @@ if ($help) {
 
 if ($version) {
     print "calculate-corpus-stats.pl - calculates statistics of the reformatted corpus\n";
-    print 'Last modified by : $Id: calculate-corpus-stats.pl,v 1.1 2009/03/30 13:44:06 kvarada Exp $';
+    print 'Last modified by : $Id: calculate-corpus-stats.pl,v 1.3 2009/04/30 22:08:49 kvarada Exp $';
     print "\n";
     exit;
 }
@@ -43,7 +43,9 @@ unless (defined $file ) {
     exit 1;
 }
 
-while(<$file>)
+open (FH, '<', $file) or die "Cannot open '$file': $!";
+
+while(<FH>)
 {
 	chomp;
 	my @instances=split(/ +/);
@@ -62,11 +64,11 @@ while(<$file>)
 		}
 		my @senses=$qd->querySense($inst);
 		my $count=0;
-		$count=$#senses + 1;
-		if($count < 1){
+		$count=$#senses;
+		if($count < 0){
 			$nosense++;
 		}else{	
-			$sensecount[$count-1]=$sensecount[$count-1]+1;
+			$sensecount[$count]=$sensecount[$count]+1;
 		}
 	}
 }
@@ -126,7 +128,7 @@ winter#n has only 1 sense associated with it and so it will be counted in the in
  <tpederse at d.umn.edu>
 
 This document last modified by : 
-$Id: calculate-corpus-stats.pl,v 1.1 2009/03/30 13:44:06 kvarada Exp $
+$Id: calculate-corpus-stats.pl,v 1.3 2009/04/30 22:08:49 kvarada Exp $
 
 =head1 SEE ALSO
 

@@ -28,6 +28,8 @@ my @context;
 my $contextfile="./user_data/tmp_client_input.txt";
 my $contextflag=0;
 my $stoplistflag=0;
+my $leskconfigfile="./user_data/lesk-stoplist.conf";
+my $vectorconfigfile="./user_data/vector-stoplist.conf";
 my $windowSize;
 my $format;
 my $scheme;
@@ -56,7 +58,7 @@ if ($help) {
 
 if ($version) {
     print "allwords_server.pl - WordNet::SenseRelate::AllWords web interface server\n";
-    print 'Last modified by : $Id: allwords_server.pl,v 1.37 2009/03/16 21:44:43 kvarada Exp $';
+    print 'Last modified by : $Id: allwords_server.pl,v 1.39 2009/05/27 19:56:57 kvarada Exp $';
     print "\n";
     exit;
 }
@@ -229,6 +231,12 @@ while ($client = $sock->accept()){
 	    }elsif ($line =~ /<nocompoundify>:/)
 	    {	
 			$options{nocompoundify} = 1;
+	    }elsif ($line =~ /<usemono>:/)
+	    {	
+			$options{usemono} = 1;
+	    }elsif ($line =~ /<backoff>:/)
+	    {	
+			$options{backoff} = 1;
 	    }elsif ($line =~ /<measure>:/)
 	    {	
 			$options{measure} = "WordNet::Similarity::"."$tokens[1]";
@@ -260,11 +268,15 @@ while ($client = $sock->accept()){
 		}
    }
 if (!$showversion) {
+$options{config} = $leskconfigfile if ($options{measure} eq "WordNet::Similarity::lesk");
+$options{config} = $vectorconfigfile if ($options{measure} eq "WordNet::Similarity::vector");
+
 print LFH "\nThe options are: \n";
 foreach $temp (keys(%options)) 
 { 
 	print LFH "$temp=>".$options{$temp} . "\n";
 } 	
+
 
    my $obj = WordNet::SenseRelate::AllWords->new(%options);
    $obj ? print LFH "\nWordNet::SenseRelate::AllWords object successfully created":print LFH "\nCouldn't construct WordNet::SenseRelate::AllWords object";
@@ -477,7 +489,7 @@ for each client.
  tpederse at d.umn.edu
 
 This document last modified by : 
-$Id: allwords_server.pl,v 1.37 2009/03/16 21:44:43 kvarada Exp $ 
+$Id: allwords_server.pl,v 1.39 2009/05/27 19:56:57 kvarada Exp $ 
 
 =head1 SEE ALSO
 

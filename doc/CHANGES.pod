@@ -6,6 +6,54 @@ CHANGES - Revision history for WordNet::SenseRelate::AllWords
 
 =over
 
+=item 0.19
+
+Date : May 27, 2009 
+
+=over
+
+=item 1) 
+
+Added --backoff option to wsd.pl. This option backs off to WordNet sense1 if the measure 
+can't assign any sense. 
+
+=item 2) 
+
+semcor-reformat.pl used querySense and reformatted the original text that contained the 
+first word in the synset instead of the original word. It no more uses querySense and 
+the formatted text contains the original semcor lemmas. 
+
+=item 3)
+
+Added scripts utils/extract-semcor-plaintext.pl, utils/extract-semcor-contentwords.pl and
+utils/convert-PENN-to-WN.pl. 
+
+utils/extract-semcor-plaintext.pl extracts plain text from a semcor formatted file. 
+The text contains function words, content words as well as punctuation marks. This text is 
+used for part-of-speech tagging. 
+
+utils/extract-semcor-contentwords.pl extracts content words given an answer file (typically 
+a plain text file extracted using extract-semcor-plaintext.pl which has been tagged using 
+a part of speech tagger) and a key file extracted using extract-semcor-plaintext.pl --key 
+option.
+
+utils/convert-PENN-to-WN.pl takes PENN treeb bank tagged text (format word PENNPOS per line) 
+and converts it to WordNet tagged text. 
+
+=item 4)
+
+Added default config files web/cgi-bin/allwords/user_data/lesk-stoplist.conf and 
+web/cgi-bin/allwords/user_data/vector-stoplist.conf to the web folder. 
+This is important because if the default config stoplists are not used for lesk and vector 
+, they end up giving unexpected results. 
+
+=item 5)
+
+Changed scorer2-format.pl to format the string only if it is in word#pos#sense format. 
+
+=back 
+
+
 =item 0.18
 
 Date : April 30, 2009 
@@ -530,7 +578,7 @@ original version; created by h2xs 1.23 with options
  tpederse at d.umn.edu
 
 This document last modified by :
-$Id: CHANGES.pod,v 1.21 2009/04/30 23:21:06 kvarada Exp $
+$Id: CHANGES.pod,v 1.23 2009/05/27 21:18:12 kvarada Exp $
 
 =head1 SEE ALSO
 

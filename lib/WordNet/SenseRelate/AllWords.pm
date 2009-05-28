@@ -1,6 +1,6 @@
 package WordNet::SenseRelate::AllWords;
 
-# $Id: AllWords.pm,v 1.37 2009/04/30 22:14:26 kvarada Exp $
+# $Id: AllWords.pm,v 1.40 2009/05/27 20:58:27 kvarada Exp $
 
 =head1 NAME
 
@@ -60,7 +60,7 @@ use Carp;
 
 our @ISA = ();
 
-our $VERSION = '0.18';
+our $VERSION = '0.19';
 
 my %wordnet;
 my %wntools;
@@ -72,7 +72,8 @@ my %trace;
 my %outfile;
 my %forcepos;
 my %nocompoundify;
-my %monosemy;
+my %usemono;
+my %backoff;
 my %wnformat;
 my %fixed;
 
@@ -157,7 +158,8 @@ Parameters:
   trace        => INTEGER   : generate traces (default: 0)
   forcepos     => INTEGER   : do part-of-speech coercion (default: 0)
   nocompoundify => INTEGER  : disable compoundify (default: 0)
-  monosemy => INTEGER  : enable assigning the available sense to monosemy (default: 0)
+  usemono => INTEGER  : enable assigning the available sense to usemono (default: 0)
+  backoff => INTEGER  : enable assigning most frequent sense if the measure can't assign sense (default: 0)
 
 Returns:
 
@@ -209,7 +211,8 @@ sub new
     my $outfile;
     my $forcepos;
     my $nocompoundify=0;
-    my $monosemy=0;
+    my $usemono=0;
+    my $backoff=0;
     my $fixed = 0;
     my $wnformat = 0;
 
@@ -239,8 +242,11 @@ sub new
 	elsif($key eq 'nocompoundify'){
 	    $nocompoundify=$val;	
 	}
-	elsif($key eq 'monosemy'){
-	    $monosemy=$val;	
+	elsif($key eq 'usemono'){
+	    $usemono=$val;	
+	}
+	elsif($key eq 'backoff'){
+	    $backoff=$val;	
 	}
 	elsif ($key eq 'trace') {
 	    $trace = $val;
@@ -345,11 +351,18 @@ sub new
 	$nocompoundify{$self} = 0;
     }
 
-    if (defined $monosemy) {
-	$monosemy{$self} = $monosemy;
+    if (defined $usemono) {
+	$usemono{$self} = $usemono;
     }
     else {
-	$monosemy{$self} = 0;
+	$usemono{$self} = 0;
+    }
+
+    if (defined $backoff) {
+	$backoff{$self} = $backoff;
+    }
+    else {
+	$backoff{$self} = 0;
     }
 
 
@@ -377,7 +390,8 @@ sub DESTROY
     delete $outfile{$self};
     delete $forcepos{$self};
     delete $nocompoundify{$self};
-    delete $monosemy{$self};
+    delete $usemono{$self};
+    delete $backoff{$self};
     delete $wnformat{$self};
     delete $fixed{$self};
 
@@ -1052,7 +1066,8 @@ sub _normalDisambig
     my $senses_ref = shift;
     my $context_ref = shift;
     my $measure = $simMeasure{$self};
-    my $monosemy = $monosemy{$self};
+    my $usemono = $usemono{$self};
+    my $backoff = $backoff{$self};
 	
     my $result;
 
@@ -1069,7 +1084,7 @@ sub _normalDisambig
 	$target_scores[$i] = 0;
 	# If --usemono flag is on and the word has only one sense then assign it.
 	# This flag will be off by default.
-	if($monosemy == 1 && $#{$senses_ref->[$targetIdx]} == 0){
+	if($usemono == 1 && $#{$senses_ref->[$targetIdx]} == 0){
 		$result = $senses_ref->[$targetIdx][0];
 		return $result;
 	}
@@ -1169,6 +1184,9 @@ sub _normalDisambig
     if ($best_tscore < 0) {
 	#$result = $context_ref->[$targetIdx];
 	$result = "$context_ref->[$targetIdx]"."#NR";
+	if($backoff == 1){
+		$result = $self->getSense1(\$context_ref->[$targetIdx]);
+	}
     }
     
     if (ref $trace{$self} and $trace{$self}->{level} & TR_BESTSCORE) {

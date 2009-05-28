@@ -6,7 +6,7 @@ SYNOPSIS
     driver, and web interface.
 
 DESCRIPTION
-  For version 0.19
+  For version 0.20
     1)  Add config file option to the web interface so that it would be able
         to handle the files specified in the configuration file ( for
         example, stoplist file path specified in the configuration file).
@@ -63,8 +63,8 @@ AUTHORS
      Ted Pedersen, University of Minnesota, Duluth
      tpederse at d.umn.edu
 
-    This document last modified by : $Id: TODO.pod,v 1.14 2009/04/30
-    22:40:21 kvarada Exp $
+    This document last modified by : $Id: TODO.pod,v 1.15 2009/05/27
+    21:10:49 kvarada Exp $
 
 SEE ALSO
     CHANGES, README, INSTALL

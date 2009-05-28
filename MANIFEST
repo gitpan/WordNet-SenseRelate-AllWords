@@ -23,6 +23,9 @@ t/wsd.t
 TODO
 utils/allwords-scorer2.pl
 utils/calculate-corpus-stats.pl
+utils/convert-PENN-to-WN.pl
+utils/extract-semcor-contentwords.pl
+utils/extract-semcor-plaintext.pl
 utils/scorer2-format.pl
 utils/scorer2-sort.pl
 utils/semcor-reformat.pl
@@ -32,7 +35,9 @@ utils/wsd.pl
 web/cgi-bin/allwords/allwords.cgi
 web/cgi-bin/allwords/allwords_server.pl
 web/cgi-bin/allwords/user_data/default-stoplist-raw.txt
+web/cgi-bin/allwords/user_data/lesk-stoplist.conf
 web/cgi-bin/allwords/user_data/README.cgi-bin.user_data.pod
+web/cgi-bin/allwords/user_data/vector-stoplist.conf
 web/cgi-bin/allwords/version.cgi
 web/htdocs/allwords/allwords.html
 web/htdocs/allwords/user_data/README.htdocs.user_data.pod

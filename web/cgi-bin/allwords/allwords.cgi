@@ -187,6 +187,8 @@ foreach $trace (@tracelevel) {
 
 $options{forcepos} = $cgi->param('forcepos') if defined $cgi->param('forcepos');
 $options{nocompoundify} = $cgi->param('nocompoundify') if defined $cgi->param('nocompoundify');
+$options{usemono} = $cgi->param('usemono') if defined $cgi->param('usemono');
+$options{backoff} = $cgi->param('backoff') if defined $cgi->param('backoff');
 
 $doc_base=$ENV{'DOCUMENT_ROOT'};
 open FH, '>', $filename or die "Cannot open $filename for writing: $!";
@@ -419,7 +421,7 @@ later.
  tpederse at d.umn.edu
 
 This document last modified by : 
-$Id: allwords.cgi,v 1.32 2009/03/16 21:43:13 kvarada Exp $
+$Id: allwords.cgi,v 1.33 2009/05/27 19:56:24 kvarada Exp $
 
 =head1 SEE ALSO
 

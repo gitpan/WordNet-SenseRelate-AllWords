@@ -1,5 +1,5 @@
 #!/usr/bin/perl
-# $Id: wsd.pl,v 1.36 2009/04/30 22:20:26 kvarada Exp $
+# $Id: wsd.pl,v 1.37 2009/05/19 21:59:41 kvarada Exp $
 
 use strict;
 use warnings;
@@ -19,6 +19,7 @@ our $pairScore = 0;
 our $glosses;
 our $nocompoundify;
 our $usemono;
+our $backoff;
 our $trace;
 our $help;
 our $version;
@@ -45,6 +46,7 @@ my $ok = GetOptions ('type|measure=s' => \$measure,
 		     glosses => \$glosses,
 		     nocompoundify => \$nocompoundify,
 		     usemono => \$usemono,
+	   	     backoff => \$backoff,
 		     'trace=i' => \$trace,
 		     help => \$help,
 		     version => \$version,
@@ -60,7 +62,7 @@ if ($help) {
 
 if ($version) {
     print "wsd.pl - assign a sense to all words in a context\n";
-    print 'Last modified by : $Id: wsd.pl,v 1.36 2009/04/30 22:20:26 kvarada Exp $';
+    print 'Last modified by : $Id: wsd.pl,v 1.37 2009/05/19 21:59:41 kvarada Exp $';
     print "\n";
     exit;
 }
@@ -108,6 +110,7 @@ if ($window < 2) {
 	print STDERR "    glosses       : ", ($glosses ? "yes" : "no"), "\n";
 	print STDERR "    nocompoundify : ", ($nocompoundify ? "yes" : "no"), "\n";
 	print STDERR "    usemono      : ", ($usemono ? "yes" : "no"), "\n";
+	print STDERR "    backoff      : ", ($backoff ? "yes" : "no"), "\n";
 	print STDERR "    trace         : ", ($trace ? $trace : "no"), "\n";
 	print STDERR "    forcepos      : ", ($forcepos ? "yes" : "no"), "\n";
     }
@@ -149,6 +152,7 @@ $options{outfile} = $outfile if defined $outfile;
 $options{forcepos} = $forcepos if defined $forcepos;
 $options{nocompoundify} = $nocompoundify if defined $nocompoundify;
 $options{usemono} = $usemono if defined $usemono;
+$options{backoff} = $backoff if defined $backoff;
 $options{wnformat} = 1 if $format eq 'wntagged';
 
 my $sr = WordNet::SenseRelate::AllWords->new (%options);
@@ -330,7 +334,7 @@ sub showUsage
     print "              [--type MEASURE] [--config FILE] \n";
     print "              [--stoplist file] [--window INT] [--contextScore NUM]\n";
     print "              [--pairScore NUM] [--outfile FILE] [--trace INT] \n";
-    print "              [--glosses][--forcepos][--nocompoundify][--usemono] \n";
+    print "              [--glosses][--forcepos][--nocompoundify][--usemono][--backoff] \n";
     print "              | {--help | --version}\n";
 
     if ($long) {
@@ -359,6 +363,7 @@ sub showUsage
 	print "\t                     are assigned\n";
        print "\t--nocompoundify      disable compoundify\n";
        print "\t--usemono            enable assigning the only available sense to monosemy words\n";
+       print "\t--backoff            Use most frequent sense if can't assign sense\n";
 	print "\t--help               show this help message\n";
 	print "\t--version            show version information\n";
     }
@@ -375,7 +380,7 @@ wsd.pl - automatically assign a meaning to every word in a text
  wsd.pl --context FILE --format FORMAT [--scheme SCHEME] [--type MEASURE] 
            [--config FILE] [--stoplist FILE] 
            [--window INT] [--contextScore NUM] [--pairScore NUM] 
-           [--outfile FILE] [--trace INT] [--forcepos] [--nocompoundify] [--usemono]
+           [--outfile FILE] [--trace INT] [--forcepos] [--nocompoundify] [--usemono][--backoff]
 		| --help | --version
 
 =head1 DESCRIPTION
@@ -534,6 +539,12 @@ Using this option will disable this.
 
 If this flag is on the only available sense is assignsed to the usemono words. 
 By default this flag is off. 
+
+=item --backoff
+
+Use the most frequent sense if the measure can't assign sense because no relatedness
+is found with the surrounding words. This happens for path based measures and Info 
+content based measures. 
 
 =back
 

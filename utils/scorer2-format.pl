@@ -22,7 +22,7 @@ if ($help) {
 
 if ($version) {
     print "scorer2-format.pl - Reformat wsd.pl output for use by the scorer2 evaluation program\n";
-    print 'Last modified by : $Id: scorer2-format.pl,v 1.9 2009/02/13 14:47:58 kvarada Exp $';
+    print 'Last modified by : $Id: scorer2-format.pl,v 1.10 2009/05/25 22:23:29 kvarada Exp $';
     print "\n";
     exit;
 }
@@ -38,11 +38,12 @@ open FH, '<', $infile or die "Cannot open $infile: $!";
 while (my $line = <FH>) {
     my @forms = split /\s+/, $line;
     foreach my $form (@forms) {
-	my ($w, $p, $s) = split /\#/, $form;
+	#my ($w, $p, $s) = split /\#/, $form;
+	my ($w, $p, $s)=($form =~ /(\S+)\#([n|r|v|a])\#(\d+)/);
 	# inc the id number
 	$id++;
 
-	unless (defined $s && defined $p){
+	unless (defined $w && defined $s && defined $p){
 		next;
 	}
 	
@@ -105,7 +106,7 @@ The scorer2 C program is available for download at L<http://www.senseval.org/sen
  <tpederse at d.umn.edu>
 
 This document last modified by : 
-$Id: scorer2-format.pl,v 1.9 2009/02/13 14:47:58 kvarada Exp $
+$Id: scorer2-format.pl,v 1.10 2009/05/25 22:23:29 kvarada Exp $
 
 =head1 SEE ALSO
 

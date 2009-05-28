@@ -27,7 +27,7 @@ if ($help) {
 
 if ($version) {
     print "semcor-reformat.pl - Reformat SemCor sense tagged files for use by wsd.pl\n";
-    print 'Last modified by : $Id: semcor-reformat.pl,v 1.16 2009/02/13 14:37:30 kvarada Exp $';
+    print 'Last modified by : $Id: semcor-reformat.pl,v 1.17 2009/05/22 19:16:38 kvarada Exp $';
     print "\n";
     exit;
 }
@@ -201,7 +201,6 @@ sub processTag
     }
 
 
-
     my $attrs_string = $3;
 
     my %attrs;
@@ -209,12 +208,13 @@ sub processTag
     while ($attrs_string =~ /(\w+)=(\S+|\"[^\"]+\")/g) {
 	my $a = $1;
 	my $val = $2;
-
+	
 	if (substr ($val, 0, 1) eq '"') {
 	    $val = substr ($val, 1, length ($val) - 2);
 	}
 
 	$attrs{$a} = $val;
+
     }
     $handlers{$name} ($close_tag, %attrs);
 }
@@ -374,11 +374,15 @@ sub getWPS
     my $wnsn = shift;
     my $synset_type = substr $lexsn, 0, 1;
     my $pos = $posLetter{$synset_type};
-    my ($sense) = $wn->querySense ("$lemma#$pos#$wnsn", "syns");
+
+    my ($sense) = "$lemma#$pos#$wnsn";
+
+    # don't use synonyms instead of the surface form of the text
+#   ($sense) = $wn->querySense ("$lemma#$pos#$wnsn", "syns"); 
     my ($w, $p, $s) = split /\#/, $sense;
     return ($w, $p, $s);
 }
-
+	
 sub showUsage
 {
    my $long = shift;
@@ -479,7 +483,7 @@ for scorer2-format.pl and allwords-scorer2.pl for more information.
  tpederse at d.umn.edu
 
 This document last modified by : 
-$Id: semcor-reformat.pl,v 1.16 2009/02/13 14:37:30 kvarada Exp $
+$Id: semcor-reformat.pl,v 1.17 2009/05/22 19:16:38 kvarada Exp $
 
 =head1 SEE ALSO
 

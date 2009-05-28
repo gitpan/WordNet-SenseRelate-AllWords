@@ -81,6 +81,21 @@ CONTENTS
             format, you should call this script explicitly before using
             wsd.pl or the web interface.
 
+        extract-semcor-plaintext.pl
+            extracts plain text from a semcor formatted file. The text
+            contains function words, content words as well as punctuation
+            marks. This text is used for part-of-speech tagging.
+
+        extract-semcor-contentwords.pl
+            extracts content words given an answer file (typically a plain
+            text file extracted using extract-semcor-plaintext.pl which has
+            been tagged using a part of speech tagger) and a key file
+            extracted using extract-semcor-plaintext.pl --key option.
+
+        convert-PENN-to-WN.pl
+            takes PENN tree bank tagged text (format : word PENNPOS per
+            line) and converts it to WordNet tagged text.
+
         Each of these scripts has detailed documentation. Run perldoc on a
         file to see the detailed documentation; for example, 'perldoc
         wsd.pl' shows the documentation for wsd.pl.
@@ -249,10 +264,11 @@ DESCRIPTION
     word sense in a synset (synonym set) to which the original word belongs.
 
    Usage
-    wsd.pl --context FILE --format FORMAT [--scheme SCHEME] [--type MEASURE]
-    [--config FILE] [--stoplist FILE] [--window INT] [--contextScore NUM]
-    [--pairScore NUM] [--outfile FILE] [--trace INT] [--forcepos]
-    [--nocompoundify] | --help | --version
+    Usage: wsd.pl --context FILE --format FORMAT [--scheme SCHEME] [--type
+    MEASURE] [--config FILE] [--stoplist file] [--window INT]
+    [--contextScore NUM] [--pairScore NUM] [--outfile FILE] [--trace INT]
+    [--glosses][--forcepos][--nocompoundify][--usemono][--backoff] | {--help
+    | --version}
 
     The format option specifies one of the three different formats supported
     by wsd.pl. The three formats are:
@@ -409,7 +425,7 @@ AUTHORS
 
     Last updated by :
 
-    # $Id: README,v 1.25 2009/04/02 13:04:40 kvarada Exp $
+    # $Id: README,v 1.26 2009/05/27 21:20:25 kvarada Exp $
 
 COPYRIGHT
     Copyright (C) 2004-2008 by Ted Pedersen, Varada Kolhatkar, Jason

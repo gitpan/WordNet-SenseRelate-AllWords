@@ -28,6 +28,7 @@ my $contextScor =0;
 my $forcepos = 0;
 my $nocompoundify = 0;
 my $usemono = 0;
+my $backoff = 0;
 my $score;
 my $s1nc;
 my $contextScore = 0;
@@ -59,6 +60,7 @@ my $res = GetOptions ('type=s' => \$measure,
 		      'forcepos' => \$forcepos,
 		      'nocompoundify' => \$nocompoundify,
 		      'usemono' => \$usemono,
+		      'backoff' => \$backoff,
 		      'score=s' => \$score,		      	
 		      'pairScore=f' => \$pairScore,
 		      'contextScore=f' => \$contextScore,
@@ -79,7 +81,7 @@ if ($help) {
 
 if ($version) {
     print "wsd-experiments.pl - driver for running wsd experiments\n";
-    print 'Last modified by : $Id: wsd-experiments.pl,v 1.16 2009/04/30 22:20:34 kvarada Exp $';
+    print 'Last modified by : $Id: wsd-experiments.pl,v 1.17 2009/05/19 21:59:24 kvarada Exp $';
     print "\n";
     exit;
 }
@@ -249,6 +251,7 @@ $options .= " --stoplist $stoplist" if $stoplist;
 $options .= " --scheme $scheme";
 $options .= " --nocompoundify" if $nocompoundify;
 $options .= " --usemono" if $usemono;
+$options .= " --backoff" if $backoff;
 $options .= " --forcepos" if $forcepos;
 
 $options .= " --type $measure" if $measure;
@@ -339,7 +342,7 @@ sub usage
     print "                         {--semcor DIR | --file FILE [FILE ...]}\n";
     print "                         [--config=FILE] [--window=INT] [stoplist=FILE]\n";
     print "                         [--contextScore NUM] [--pairScore NUM] [--forcepos]\n";
-    print "                         [--nocompoundify][--usemono][--score poly|s1nc|n]\n";
+    print "                         [--nocompoundify][--usemono][--score poly|s1nc|n][--backoff]\n";
     print "                         | {--help | --version}\n";
     if ($long) {
 	print "Options:\n";
@@ -361,6 +364,7 @@ sub usage
        print "\t--forcepos           force all words in window of context\n";
        print "\t--nocompoundify      disable compoundifying\n";
        print "\t--usemono            enable assigning the only available sense to monosemy words\n";
+       print "\t--backoff            Use most frequent sense if can't assign sense\n";
 	print "\t--score poly         score only polysemes instances\n";
 	print "\t        s1nc         score only the instances where the most frequent sense is not correct\n";
 	print "\t           n         score only the instances having n number of sense\n"; 
@@ -380,7 +384,7 @@ wsd-experiments.pl - driver for running wsd experiments
 wsd-experiments.pl {--type=MEASURE | --sense1 | --random} --basename=outputfile
                   {--semcor DIR | --file FILE [FILE ...]}
                   [--config=FILE] [--window=INT] [stoplist=FILE]
-                  [--contextScore NUM] [--pairScore NUM] [--forcepos][--nocompoundify][--usemono][--score]
+                  [--contextScore NUM] [--pairScore NUM] [--forcepos][--nocompoundify][--usemono][--score][--backoff]
                   | {--help | --version}
 		    
 
@@ -538,6 +542,12 @@ will disable it.
 If this flag is on the only available sense is assignsed to the monosemy words. 
 By default this flag is off. 
 
+=item --backoff
+
+Use the most frequent sense if the measure can't assign sense because no relatedness
+is found with the surrounding words. This happens for path based measures and Info 
+content based measures. 
+
 =item --score
 
 Score only specific instances. Valid options are 
@@ -560,7 +570,7 @@ Score only specific instances. Valid options are
  tpederse at d.umn.edu
 
 This document last modified by : 
-$Id: wsd-experiments.pl,v 1.16 2009/04/30 22:20:34 kvarada Exp $
+$Id: wsd-experiments.pl,v 1.17 2009/05/19 21:59:24 kvarada Exp $
 
 =head1 SEE ALSO
 

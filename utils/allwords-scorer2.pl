@@ -22,7 +22,6 @@ my $keyf;
 my $targetword;
 my @exceptwords;
 my $score;
-my $s1nc;
 my $help;
 my $version;
 
@@ -32,7 +31,6 @@ my $ok = GetOptions (
 		     'word=s' => \$targetword,
 		     'exceptword=s' => \@exceptwords,
 		     'score=s' => \$score,
-		     s1nc => \$s1nc,
 		     help => \$help,
 		     version => \$version,
 		     );
@@ -46,7 +44,7 @@ if ($help) {
 
 if ($version) {
     print "allwords-scorer2.pl - allwords scorer2 perl program\n";
-    print 'Last modified by : $Id: allwords-scorer2.pl,v 1.9 2009/04/30 21:48:54 kvarada Exp $';
+    print 'Last modified by : $Id: allwords-scorer2.pl,v 1.12 2009/05/24 14:50:37 kvarada Exp $';
     print "\n";
     exit;
 }
@@ -74,7 +72,7 @@ initializeHashes();
 foreach my $k (@key)
 {
 	my $exceptwordflag=0;
-	my ($word,$pos,$kid,$sense)=($k =~ /(\S+).([a|n|r|v]) (\d+) (\d+)/);
+	my ($word,$pos,$kid,$sense)=($k =~ /(\S+).([a|n|r|v]) (\d+) ((\d+ ?)+)/);
 	next if(defined $targetword && $word ne $targetword);
 	foreach my $ew (@exceptwords, @ARGV){
 			$exceptwordflag = 1 if($word eq $ew);
@@ -87,10 +85,16 @@ foreach my $k (@key)
 		if($score eq "poly"){
 			next if($#senses <= 0);
 		}elsif($score eq "s1nc"){
-			next if($sense == 1);
-		}else{
+			next if(matchSenses($sense,1));
+		}elsif($score eq "polys1c"){
+			next if($#senses <= 0 && (matchSenses($sense,1) == 0 ));
+		}elsif($score =~ /\d+/){
 			next if(($#senses + 1) ne $score);	
-		}			
+		}else{
+			print "Invalid argument value for --score option\n";
+			showUsage();
+			exit;
+		}
 	}	
 	$instances++;
 	if(!defined $ans{$kid})
@@ -138,7 +142,8 @@ foreach my $k (@key)
 	if($pos eq "n"){
 		if($pos eq $apos){
 				$nounhash{asnoun}+=1;
-				if($sense eq $asense){
+				if(matchSenses($sense,$asense)){
+				#if($sense eq $asense){
 					$global_score++;		
 					$nounhash{correct}+=1;
 				}else{
@@ -153,7 +158,7 @@ foreach my $k (@key)
 	}elsif($pos eq "v"){
 		if($pos eq $apos){
 				$verbhash{asverb}+=1;
-				if($sense eq $asense){
+				if(matchSenses($sense,$asense)){
 					$global_score++;		
 					$verbhash{correct}+=1;
 				}else{
@@ -168,7 +173,7 @@ foreach my $k (@key)
 	}elsif($pos eq "a"){
 		if($pos eq $apos){
 				$adjhash{asadj}+=1;
-				if($sense eq $asense){
+				if(matchSenses($sense,$asense)){
 					$global_score++;		
 					$adjhash{correct}+=1;
 				}else{
@@ -183,7 +188,7 @@ foreach my $k (@key)
 	}elsif($pos eq "r"){
 		if($pos eq $apos){
 				$advhash{asadv}+=1;
-				if($sense eq $asense){
+				if(matchSenses($sense,$asense)){
 					$global_score++;		
 					$advhash{correct}+=1;
 				}else{
@@ -210,13 +215,18 @@ if(defined $score){
 		print "\nScoring only polysemes.\n";
 	}elsif($score eq "s1nc"){
 		print "\nScoring only the instances where the most frequent sense is not correct.\n";	
+	}elsif($score eq "polys1c"){
+		print "\nScoring only the instances where the most frequent sense is correct and the word is polysemes.\n";	
 	}else{
 		print "\nScoring only the instances with $score number of senses.\n";	
 	}
+
 }
 
-
 my $instances_attempted=$instances - $skipped;
+if ( $instances_attempted ==0){
+	die "No instances to evaluate\n\n";
+} 
 eval{$precision=$global_score / $instances_attempted;};
 $precision=0 if($@);
 eval{$recall=$global_score / $instances;};
@@ -353,12 +363,22 @@ sub initializeHashes
 	$advhash{asadv}=0;	
 }
 
+
+sub matchSenses{
+	my $sense=shift;
+	my $asense=shift;
+	my @sarray=split(/ +/,$sense);
+	foreach my $s (@sarray){
+		return 1 if($s == $asense);
+	}
+	return 0;
+}
 sub showUsage
 {
     my $long = shift;
     print "Usage: allwords-scorer2.pl --ansfile FILE --keyfile FILE\n";
     print "                           [--word WORD] [--exceptword WORD [WORD ...]]\n";
-    print "                           [--score poly|s1nc|n]| {--help | --version}\n";
+    print "                           [--score poly|s1nc|polys1c|n]| {--help | --version}\n";
 
     if ($long) 
     {
@@ -369,6 +389,7 @@ sub showUsage
 	print "\t--exceptword         score all instances except for these instances\n";
 	print "\t--score poly         score only polysemes instances\n";
 	print "\t        s1nc         score only the instances where the most frequent sense is not correct\n";
+	print "\t        polys1c      Scoring only the instances where the most frequent sense is correct and the word is polysemes.\n";
 	print "\t           n         score only the instances having n number of sense\n"; 
 	print "\t--help               show this help message\n";
 	print "\t--version            show version information\n";
@@ -421,6 +442,7 @@ Score only specific instances. Valid options are
 
 --score poly score only polysemes instances
 --score s1nc score only the instances where the most frequent sense is not correct
+--score polys1c Scoring only the instances where the most frequent sense is correct and the word is polysemes.
 --score n    score only the instances having n number of sense 
 
 
@@ -440,7 +462,7 @@ L<http://www.senseval.org/senseval3/scoring>
  <tpederse at d.umn.edu>
 
 This document last modified by : 
-$Id: allwords-scorer2.pl,v 1.9 2009/04/30 21:48:54 kvarada Exp $
+$Id: allwords-scorer2.pl,v 1.12 2009/05/24 14:50:37 kvarada Exp $
 
 =head1 SEE ALSO
 
